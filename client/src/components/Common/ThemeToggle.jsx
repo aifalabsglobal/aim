@@ -29,14 +29,14 @@ const ThemeToggle = () => {
                 </div>
 
                 {/* Thumb with Sun/Moon */}
-                <div className={`theme-toggle-thumb ${isDark ? 'translate-x-0' : 'translate-x-[22px]'}`}>
-                    {/* Moon icon (Show in Light Mode to switch to Dark) */}
+                <div className={`theme-toggle-thumb ${isDark ? 'translate-x-[22px]' : 'translate-x-0'}`}>
+                    {/* Moon icon (Show in Dark Mode) */}
                     <Moon
-                        className={`theme-icon moon-icon ${isDark ? 'opacity-0 -rotate-90' : 'opacity-100 rotate-0'}`}
+                        className={`theme-icon moon-icon ${isDark ? 'opacity-100 rotate-0' : 'opacity-0 -rotate-90'}`}
                     />
-                    {/* Sun icon (Show in Dark Mode to switch to Light) */}
+                    {/* Sun icon (Show in Light Mode) */}
                     <Sun
-                        className={`theme-icon sun-icon ${isDark ? 'opacity-100 rotate-0' : 'opacity-0 rotate-90'}`}
+                        className={`theme-icon sun-icon ${isDark ? 'opacity-0 rotate-90' : 'opacity-100 rotate-0'}`}
                     />
 
                     {/* Crater details for moon (dark mode) */}
