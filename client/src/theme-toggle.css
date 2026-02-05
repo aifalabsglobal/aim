@@ -1,0 +1,25 @@
+/* THEME TOGGLE */
+.theme-toggle {
+    @apply relative w-14 h-7 rounded-full transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--accent-primary)];
+    background: linear-gradient(to right, #87CEEB, #4682B4);
+}
+
+.dark .theme-toggle {
+    background: linear-gradient(to right, #2C3E50, #000000);
+}
+
+.theme-toggle-track {
+    @apply relative w-full h-full rounded-full overflow-hidden cursor-pointer;
+}
+
+.theme-toggle-thumb {
+    @apply absolute top-0.5 left-0.5 w-6 h-6 bg-white rounded-full shadow-md transition-transform duration-300 z-10 flex items-center justify-center;
+}
+
+.theme-icon {
+    @apply w-4 h-4 text-yellow-500 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 transition-all duration-300;
+}
+
+.moon-icon {
+    @apply text-indigo-400;
+}
