@@ -45,10 +45,11 @@ const Sidebar = ({ toggle }) => {
         return d.toDateString() === yesterday.toDateString();
     };
 
+    const list = Array.isArray(conversations) ? conversations : [];
     const groupedConversations = {
-        today: (conversations || []).filter(c => isToday(c.updatedAt || c.createdAt)),
-        yesterday: (conversations || []).filter(c => isYesterday(c.updatedAt || c.createdAt)),
-        older: (conversations || []).filter(c => !isToday(c.updatedAt || c.createdAt) && !isYesterday(c.updatedAt || c.createdAt))
+        today: list.filter(c => isToday(c.updatedAt || c.createdAt)),
+        yesterday: list.filter(c => isYesterday(c.updatedAt || c.createdAt)),
+        older: list.filter(c => !isToday(c.updatedAt || c.createdAt) && !isYesterday(c.updatedAt || c.createdAt))
     };
 
     const renderConversation = (conv) => (

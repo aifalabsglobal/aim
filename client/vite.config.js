@@ -13,10 +13,11 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: (id) => {
-          if (id.includes('node_modules/@monaco-editor')) return 'monaco';
-          if (id.includes('node_modules/katex')) return 'katex';
-          if (id.includes('node_modules/react-syntax-highlighter')) return 'syntax-highlighter';
-          if (id.includes('node_modules/react-markdown') || id.includes('node_modules/rehype') || id.includes('node_modules/remark')) return 'markdown';
+          const norm = id.replace(/\\/g, '/');
+          if (norm.includes('node_modules/@monaco-editor')) return 'monaco';
+          if (norm.includes('node_modules/katex')) return 'katex';
+          if (norm.includes('node_modules/react-syntax-highlighter')) return 'syntax-highlighter';
+          if (norm.includes('node_modules/react-markdown') || norm.includes('node_modules/rehype') || norm.includes('node_modules/remark')) return 'markdown';
         },
       },
     },

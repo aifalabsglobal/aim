@@ -10,6 +10,7 @@ const ModelSwitcher = ({ sidebarMode = false }) => {
         gpuStatus
     } = useChatContext();
 
+    const models = Array.isArray(availableModels) ? availableModels : [];
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef(null);
 
@@ -54,7 +55,7 @@ const ModelSwitcher = ({ sidebarMode = false }) => {
     };
 
     const getCurrentModelDisplay = () => {
-        const model = availableModels.find(m => m.name === currentModel || m.id === currentModel);
+        const model = models.find(m => m.name === currentModel || m.id === currentModel);
         return model?.displayName || model?.name?.split(':')[0] || currentModel?.split(':')[0];
     };
 
@@ -114,8 +115,8 @@ const ModelSwitcher = ({ sidebarMode = false }) => {
 
                     {/* Model List */}
                     <div className="max-h-64 overflow-y-auto scrollbar-thin py-1">
-                        {availableModels.length > 0 ? (
-                            availableModels.map((model) => (
+                        {models.length > 0 ? (
+                            models.map((model) => (
                                 <button
                                     key={model.id || model.name}
                                     onClick={() => {
@@ -161,10 +162,10 @@ const ModelSwitcher = ({ sidebarMode = false }) => {
                     </div>
 
                     {/* Footer */}
-                    {availableModels.length > 0 && (
+                    {models.length > 0 && (
                         <div className="px-4 py-2 border-t border-[var(--border-color)]">
                             <p className="text-[10px] text-[var(--text-muted)] text-center">
-                                {availableModels.length} model{availableModels.length !== 1 ? 's' : ''} available
+                                {models.length} model{models.length !== 1 ? 's' : ''} available
                             </p>
                         </div>
                     )}

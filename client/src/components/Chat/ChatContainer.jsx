@@ -23,7 +23,8 @@ const ChatContainer = () => {
     const [userAutoScroll, setUserAutoScroll] = useState(true);
 
     // Combine historical messages with current streaming message
-    const displayMessages = [...messages];
+    const messagesList = Array.isArray(messages) ? messages : [];
+    const displayMessages = [...messagesList];
     if (isStreaming) {
         displayMessages.push({
             id: 'streaming-temp',
@@ -48,7 +49,7 @@ const ChatContainer = () => {
 
     // Force auto-scroll when user sends a message (last message is user)
     useEffect(() => {
-        const lastMsg = messages[messages.length - 1];
+        const lastMsg = messagesList[messagesList.length - 1];
         if (lastMsg && lastMsg.role === 'user') {
             // eslint-disable-next-line react-hooks/set-state-in-effect
             setUserAutoScroll(true);
@@ -60,7 +61,7 @@ const ChatContainer = () => {
             }
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [messages.length]);
+    }, [messagesList.length]);
 
     // Handle auto-scroll during streaming
     useEffect(() => {

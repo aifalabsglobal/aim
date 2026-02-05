@@ -2,10 +2,36 @@ import { createContext, useContext, useState, useEffect } from 'react';
 import { useStreamResponse } from '../hooks/useStreamResponse';
 import { api } from '../services/api';
 
-const ChatContext = createContext();
+const defaultChatContext = {
+    conversations: [],
+    currentConversationId: null,
+    setCurrentConversationId: () => {},
+    currentModel: null,
+    setCurrentModel: () => {},
+    availableModels: [],
+    gpuStatus: 'checking',
+    messages: [],
+    setMessages: () => {},
+    sendMessage: async () => {},
+    createNewChat: async () => null,
+    deleteConversation: async () => {},
+    isLoading: false,
+    isStreaming: false,
+    stopStream: () => {},
+    streamingContent: '',
+    thinkingContent: '',
+    isThinking: false,
+    thinkingDuration: 0,
+    settings: { temperature: 0.7, topP: 1, maxTokens: 4096, systemPrompt: '' },
+    updateSettings: () => {},
+    error: null,
+    refreshModels: () => {}
+};
+
+const ChatContext = createContext(defaultChatContext);
 
 // eslint-disable-next-line react-refresh/only-export-components
-export const useChatContext = () => useContext(ChatContext);
+export const useChatContext = () => useContext(ChatContext) ?? defaultChatContext;
 
 export const ChatProvider = ({ children }) => {
     const [conversations, setConversations] = useState([]);
@@ -78,7 +104,7 @@ export const ChatProvider = ({ children }) => {
     const fetchModels = async () => {
         try {
             const data = await api.getModels();
-            const models = data.models || [];
+            const models = Array.isArray(data?.models) ? data.models : [];
             setAvailableModels(models);
 
             // Auto-select model: savedModel > defaultModel > first available
@@ -112,10 +138,11 @@ export const ChatProvider = ({ children }) => {
         try {
             setIsLoading(true);
             const data = await api.getConversations();
-            setConversations(data);
+            setConversations(Array.isArray(data) ? data : []);
         } catch (err) {
             console.error('Failed to fetch conversations:', err);
             setError('Failed to load conversations');
+            setConversations([]);
         } finally {
             setIsLoading(false);
         }
@@ -125,7 +152,7 @@ export const ChatProvider = ({ children }) => {
         try {
             setIsLoading(true);
             const data = await api.getConversation(id);
-            setMessages(data.messages || []);
+            setMessages(Array.isArray(data?.messages) ? data.messages : []);
         } catch (err) {
             console.error('Failed to load messages:', err);
             setError('Failed to load messages');
@@ -137,7 +164,7 @@ export const ChatProvider = ({ children }) => {
     const createNewChat = async () => {
         try {
             const data = await api.createConversation({ model: currentModel });
-            setConversations(prev => [data, ...prev]);
+            setConversations(prev => [data, ...(Array.isArray(prev) ? prev : [])]);
             setCurrentConversationId(data.id);
             setMessages([]);
             return data.id;
@@ -196,7 +223,7 @@ export const ChatProvider = ({ children }) => {
     const deleteConversation = async (id) => {
         try {
             await api.deleteConversation(id);
-            setConversations(prev => prev.filter(c => c.id !== id));
+            setConversations(prev => (Array.isArray(prev) ? prev : []).filter(c => c.id !== id));
             if (currentConversationId === id) {
                 setCurrentConversationId(null);
                 setMessages([]);
