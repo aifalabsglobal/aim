@@ -46,9 +46,9 @@ const Sidebar = ({ toggle }) => {
     };
 
     const groupedConversations = {
-        today: conversations.filter(c => isToday(c.updatedAt || c.createdAt)),
-        yesterday: conversations.filter(c => isYesterday(c.updatedAt || c.createdAt)),
-        older: conversations.filter(c => !isToday(c.updatedAt || c.createdAt) && !isYesterday(c.updatedAt || c.createdAt))
+        today: (conversations || []).filter(c => isToday(c.updatedAt || c.createdAt)),
+        yesterday: (conversations || []).filter(c => isYesterday(c.updatedAt || c.createdAt)),
+        older: (conversations || []).filter(c => !isToday(c.updatedAt || c.createdAt) && !isYesterday(c.updatedAt || c.createdAt))
     };
 
     const renderConversation = (conv) => (
