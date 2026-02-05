@@ -1,0 +1,12 @@
+services:
+  - type: web
+    runtime: node
+    name: aimintelligence-api
+    rootDir: server
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: OLLAMA_BASE_URL
+        sync: false
