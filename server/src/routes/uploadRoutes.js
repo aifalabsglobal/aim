@@ -20,7 +20,7 @@ router.post('/', upload.single('file'), (req, res) => {
             originalName: req.file.originalname,
             mimetype: req.file.mimetype,
             size: req.file.size,
-            path: `/uploads/${req.file.filename}`
+            path: process.env.VERCEL ? `/tmp/uploads/${req.file.filename}` : `/uploads/${req.file.filename}`
         };
 
         res.status(200).json(fileMeta);

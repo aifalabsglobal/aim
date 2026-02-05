@@ -1,4 +1,3 @@
-import { v4 as uuidv4 } from 'uuid';
 import * as db from '../database/db.js';
 import { generateTitle } from '../utils/helpers.js';
 
@@ -36,8 +35,7 @@ export async function getConversation(req, res, next) {
 export async function createConversation(req, res, next) {
     try {
         const { title, model } = req.body;
-        const id = uuidv4();
-        const conversation = await db.createConversation(id, title, model);
+        const conversation = await db.createConversation({ title, model });
         res.status(201).json(conversation);
     } catch (error) {
         next(error);

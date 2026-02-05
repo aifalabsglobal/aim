@@ -17,8 +17,10 @@ app.use(cors());
 app.use(express.json());
 app.use(requestLogger);
 
-// Static files (uploads)
-app.use('/uploads', express.static('uploads'));
+// Static files (uploads) – only when not on Vercel (/tmp is not served)
+if (!process.env.VERCEL && fs.existsSync(path.join(process.cwd(), 'uploads'))) {
+    app.use('/uploads', express.static('uploads'));
+}
 
 // Routes
 app.use('/api/chat', chatRoutes);
