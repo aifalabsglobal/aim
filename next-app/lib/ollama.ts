@@ -23,9 +23,11 @@ export async function getModels(): Promise<
   }));
 }
 
+const HEALTH_TIMEOUT_MS = Number(process.env.OLLAMA_HEALTH_TIMEOUT_MS) || 15000;
+
 export async function checkHealth(): Promise<boolean> {
   try {
-    const res = await fetch(`${OLLAMA_BASE_URL}/api/tags`, { signal: AbortSignal.timeout(5000) });
+    const res = await fetch(`${OLLAMA_BASE_URL}/api/tags`, { signal: AbortSignal.timeout(HEALTH_TIMEOUT_MS) });
     if (res.status !== 200) {
       const text = await res.text();
       throw new Error(`Ollama returned ${res.status}${text ? `: ${text.slice(0, 100)}` : ""}`);

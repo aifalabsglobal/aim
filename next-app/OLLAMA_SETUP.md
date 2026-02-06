@@ -56,10 +56,30 @@ If this returns JSON with a `models` array, Ollama is reachable. Then set that U
 
 ---
 
-## 3. If it still shows "Offline"
+## 3. "The operation was aborted due to timeout"
+
+This means the app (e.g. Vercel) could not get a response from your Ollama server within the timeout (default **15 seconds**).
+
+**Common causes:**
+
+1. **Firewall / security group** – Vercel runs in the cloud; its outbound IPs change. Your GPU server must allow **inbound TCP 11434 from anywhere** (or at least not block cloud IPs). If you only allow your home IP, Vercel will time out.
+2. **High latency** – Vercel (e.g. US West) and your GPU may be far apart. The health check uses a 15s timeout; if the round trip is very slow, increase it (see below).
+3. **Ollama slow to respond** – If Ollama is under load or starting, `/api/tags` may be slow. Ensure the server has enough resources.
+
+**Increase timeout (optional):** In Vercel → Environment Variables, add:
+- **Name:** `OLLAMA_HEALTH_TIMEOUT_MS`
+- **Value:** `20000` (20 seconds) or higher
+
+Redeploy after changing.
+
+**Test from the internet:** From a **different network** (e.g. phone on cellular, or a friend’s WiFi), open `http://YOUR_GPU_IP:11434/api/tags`. If it fails or is very slow, Vercel will have the same problem.
+
+---
+
+## 4. If it still shows "Offline"
 
 - Confirm **OLLAMA_BASE_URL** is set in Vercel (no typo, no trailing slash needed).
-- From a machine on the internet (or use an online “check URL” tool), open `http://YOUR_IP:11434/api/tags`. If it fails, the server or firewall is not allowing external access.
-- Check the **GPU Offline** tooltip / message in the app; it may show the error (e.g. connection refused, timeout).
+- From a machine on the internet, open `http://YOUR_IP:11434/api/tags`. If it fails, the server or firewall is not allowing external access.
+- Check the **Ollama offline** banner or **GPU Offline** tooltip in the app for the exact error (e.g. connection refused, timeout).
 
 Security note: Exposing Ollama to the internet gives anyone who can reach that URL access to run models. Use a firewall, VPN, or reverse proxy with auth if the server is not in a private network.
