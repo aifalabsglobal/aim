@@ -47,7 +47,9 @@ export default function ModelSwitcher({ sidebarMode = false }: { sidebarMode?: b
             </span>
           )}
           {gpuStatus === "disconnected" && (
-            <WifiOff className="w-3 h-3 text-red-400" title={gpuStatusMessage ?? "Ollama offline"} />
+            <span title={gpuStatusMessage ?? "Ollama offline"}>
+              <WifiOff className="w-3 h-3 text-red-400" />
+            </span>
           )}
           {gpuStatus === "checking" && (
             <span className="w-2 h-2 rounded-full bg-yellow-500 animate-pulse" title="Checking..." />
