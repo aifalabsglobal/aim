@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 
+/** Renders Mermaid diagrams (flowchart, sequence, mindmap, etc.). Use ```mermaid or ```mindmap in markdown. */
 export default function MermaidBlock({ code }: { code: string }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [error, setError] = useState<string | null>(null);

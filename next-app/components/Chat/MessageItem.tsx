@@ -60,8 +60,9 @@ export default function MessageItem({
         if (!inline && match) {
           const lang = match[1].toLowerCase();
           const codeStr = String(children).replace(/\n$/, "");
-          if (lang === "mermaid") {
-            return <MermaidBlock code={codeStr} />;
+          if (lang === "mermaid" || lang === "mindmap") {
+            const mermaidCode = lang === "mindmap" ? `mindmap\n${codeStr}` : codeStr;
+            return <MermaidBlock code={mermaidCode} />;
           }
           return (
             <div className="my-4">
