@@ -9,20 +9,21 @@ Step-by-step guide to deploy the Next.js app on **Vercel** with **Neon** (Postgr
 1. Go to **[neon.tech](https://neon.tech)** and sign in (GitHub is fine).
 2. **New Project** → name it (e.g. `aifa`) → pick region (closest to you or your users).
 3. After creation, open the project and go to **Dashboard** → **Connection string**.
-4. Copy the **connection string** (PostgreSQL). It looks like:
+4. Copy the **connection string** (PostgreSQL). For Vercel (serverless), use the **Pooled connection** from the Neon dashboard to avoid connection limits. It looks like:
    ```txt
-   postgresql://user:password@ep-xxx.region.aws.neon.tech/neondb?sslmode=require
+   postgresql://user:password@ep-xxx-pooler.region.aws.neon.tech/neondb?sslmode=require
    ```
-   Keep this for the next step; you’ll add it to Vercel as `DATABASE_URL`.
+   Keep this for the next step; you’ll add it to Vercel as `DATABASE_URL`. For local migrations you can use the **Direct** connection. See **NEON_SETUP.md** for details.
 
 ---
 
 ## 2. Create Vercel project
 
 1. Go to **[vercel.com](https://vercel.com)** and sign in (GitHub recommended).
-2. **Add New** → **Project** → import your GitHub repo (`aimintelligence` or your repo name).
+2. **Add New** → **Project** → import your GitHub repo (`aimintelligence`, `aifaintelli`, or `aim`).
 3. **Configure Project:**
-   - **Root Directory:** click **Edit** → set to **`next-app`** → **Continue**.
+   - **Root Directory:** click **Edit** → set to **`next-app`** → **Continue**.  
+     **Important:** If you leave Root Directory blank (repo root), the build will fail with `prisma: command not found` unless you add a root `vercel.json` (see **Troubleshooting** below).
    - **Framework Preset:** Next.js (auto).
    - **Build Command:** `npm run build` (default; already runs `prisma generate && next build`).
    - **Output Directory:** leave default.
@@ -114,6 +115,7 @@ After migrations, redeploy the app on Vercel (e.g. **Deployments** → **⋯** �
 
 | Issue | What to do |
 |-------|------------|
+| **`prisma: command not found`** (exit 127) | Vercel is building from repo root, so Prisma isn’t installed. **Fix:** In Vercel project settings, set **Root Directory** to **`next-app`** and redeploy. Alternatively, a root `vercel.json` in the repo sets `installCommand` and `buildCommand` to run in `next-app` so the build works even without changing Root Directory. |
 | Build fails: "Prisma Client not generated" | Ensure **Root Directory** is `next-app` and build runs `prisma generate` (our `package.json` script does). |
 | "Environment variable not found: DATABASE_URL" | Set `DATABASE_URL` in Vercel for Production (and Preview if you use preview deployments). |
 | Clerk redirect / auth errors | Add the exact Vercel URL (and custom domain) in Clerk → Domains. |
