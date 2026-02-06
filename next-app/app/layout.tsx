@@ -3,7 +3,7 @@ import { ClerkProvider } from "@clerk/nextjs";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "AIFA - AIM Intelligence",
+  title: "AIM Intelligence",
   description: "AI-powered chat application",
 };
 
