@@ -1,11 +1,14 @@
-# Vercel: Set Root Directory to avoid "prisma: command not found"
+# Vercel: Set Root Directory to `next-app` (required)
+
+**You must set Root Directory to `next-app`** so Vercel uses the Next.js app and its `package.json` (which has `next`, Prisma, etc.). The repo root has no Next.js dependency.
 
 If your Vercel build fails with:
 
-- **`prisma: command not found`** (exit 127), or  
+- **`Could not identify Next.js version`** / **`No Next.js version detected`**
+- **`prisma: command not found`** (exit 127)
 - **`No Output Directory named "public" found`**
 
-**Cause:** Vercel is using the **repo root** as the project root. Prisma lives in `next-app`, and without Next.js detected Vercel looks for a `public` output directory.
+**Cause:** Vercel is using the **repo root** as the project root. The root `package.json` has no `next`; the real app and its dependencies are in `next-app/`.
 
 **Fix (recommended):**
 
@@ -19,5 +22,4 @@ After this, Vercel will run `npm install` and `npm run build` **inside** `next-a
 
 ---
 
-**If you keep Root Directory blank:**  
-The repo has a root `vercel.json` that sets `framework` to `nextjs`, `outputDirectory` to `next-app/.next`, and install/build to run in `next-app`. That may fix the "public" error. If the deployment still fails or the app doesn’t run correctly, set **Root Directory** to **`next-app`** (recommended).
+**Root Directory must be `next-app`.** The root `vercel.json` (framework/install/build) does not change which `package.json` Vercel reads; Vercel needs to run from `next-app` so it sees `next` and the rest of the app.
