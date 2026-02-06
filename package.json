@@ -1,10 +1,13 @@
 {
-  "name": "aim-intelligence-root",
+  "name": "aimintelligence",
   "private": true,
+  "description": "AIFA – AI chat app (Next.js). See next-app/ for the application.",
   "scripts": {
-    "build": "cd client && npm install && npm run build"
+    "dev": "cd next-app && npm run dev",
+    "build": "cd next-app && npm run build",
+    "start": "cd next-app && npm start"
   },
   "engines": {
-    "node": "20.x"
+    "node": ">=20"
   }
 }
