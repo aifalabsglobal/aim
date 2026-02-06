@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getModels } from "@/lib/ollama";
 
-const OLLAMA_BASE_URL = process.env.OLLAMA_BASE_URL || "http://localhost:11434";
+const OLLAMA_BASE_URL = process.env.OLLAMA_BASE_URL || "http://45.198.59.91:11434/";
 
 export async function GET() {
   try {

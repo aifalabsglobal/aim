@@ -7,7 +7,7 @@ import { ChevronDown, Sparkles, Check, AlertCircle, Wifi, WifiOff } from "lucide
 type Model = { id?: string; name: string; displayName?: string; size?: number; offline?: boolean };
 
 export default function ModelSwitcher({ sidebarMode = false }: { sidebarMode?: boolean }) {
-  const { currentModel, setCurrentModel, availableModels, gpuStatus } = useChatContext();
+  const { currentModel, setCurrentModel, availableModels, gpuStatus, gpuStatusMessage } = useChatContext();
   const models = Array.isArray(availableModels) ? (availableModels as Model[]) : [];
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -46,7 +46,9 @@ export default function ModelSwitcher({ sidebarMode = false }: { sidebarMode?: b
               <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
             </span>
           )}
-          {gpuStatus === "disconnected" && <WifiOff className="w-3 h-3 text-red-400" />}
+          {gpuStatus === "disconnected" && (
+            <WifiOff className="w-3 h-3 text-red-400" title={gpuStatusMessage ?? "Ollama offline"} />
+          )}
           {gpuStatus === "checking" && (
             <span className="w-2 h-2 rounded-full bg-yellow-500 animate-pulse" title="Checking..." />
           )}
@@ -60,10 +62,13 @@ export default function ModelSwitcher({ sidebarMode = false }: { sidebarMode?: b
           <div className="px-4 py-2 border-b border-[var(--border-color)]">
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold uppercase tracking-wider text-[var(--text-muted)]">Select Model</span>
-              <span className={`flex items-center gap-1.5 text-[10px] font-medium ${gpuStatus === "connected" ? "text-emerald-400" : "text-red-400"}`}>
+              <span className={`flex items-center gap-1.5 text-[10px] font-medium ${gpuStatus === "connected" ? "text-emerald-400" : "text-red-400"}`} title={gpuStatus !== "connected" ? (gpuStatusMessage ?? undefined) : undefined}>
                 {gpuStatus === "connected" ? <><Wifi className="w-3 h-3" /> GPU Online</> : <><WifiOff className="w-3 h-3" /> GPU Offline</>}
               </span>
             </div>
+            {gpuStatus !== "connected" && gpuStatusMessage && (
+              <p className="text-[10px] text-[var(--text-muted)] mt-1 px-0.5 line-clamp-2">{gpuStatusMessage}</p>
+            )}
           </div>
           <div className="max-h-64 overflow-y-auto scrollbar-thin py-1">
             {models.length > 0 ? (

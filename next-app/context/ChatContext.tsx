@@ -39,6 +39,7 @@ const ChatContext = createContext<{
   setCurrentModel: (name: string) => void;
   availableModels: { name: string; displayName?: string; id?: string }[];
   gpuStatus: string;
+  gpuStatusMessage: string | null;
   messages: Message[];
   setMessages: (m: Message[] | ((prev: Message[]) => Message[])) => void;
   sendMessage: (content: string, attachments?: unknown[]) => Promise<void>;
@@ -71,6 +72,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   const [currentModel, setCurrentModel] = useState<string | null>(null);
   const [availableModels, setAvailableModels] = useState<{ name: string; displayName?: string; id?: string }[]>([]);
   const [gpuStatus, setGpuStatus] = useState("checking");
+  const [gpuStatusMessage, setGpuStatusMessage] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -134,8 +136,10 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     try {
       const data = await api.getGPUStatus();
       setGpuStatus(data.status ?? "disconnected");
+      setGpuStatusMessage(data.message ?? data.hint ?? null);
     } catch {
       setGpuStatus("disconnected");
+      setGpuStatusMessage("Could not reach Ollama. Set OLLAMA_BASE_URL in Vercel and ensure Ollama is reachable.");
     }
   }, []);
 
@@ -280,6 +284,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         setCurrentModel: selectModel,
         availableModels,
         gpuStatus,
+        gpuStatusMessage,
         messages,
         setMessages,
         sendMessage,

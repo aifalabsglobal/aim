@@ -25,7 +25,7 @@ Step-by-step guide to deploy the Next.js app on **Vercel** with **Neon** (Postgr
    - **Root Directory:** click **Edit** → set to **`next-app`** → **Continue**.  
      **Important:** If you leave Root Directory blank (repo root), the build will fail with `prisma: command not found` unless you add a root `vercel.json` (see **Troubleshooting** below).
    - **Framework Preset:** Next.js (auto).
-   - **Build Command:** `npm run build` (default; already runs `prisma generate && next build`).
+   - **Build Command:** `npm run build` (default; runs `prisma generate`, then `prisma migrate deploy` when `DATABASE_URL` is set, then `next build`).
    - **Output Directory:** leave default.
    - **Install Command:** `npm install` (default).
 
@@ -53,9 +53,13 @@ Step-by-step guide to deploy the Next.js app on **Vercel** with **Neon** (Postgr
 
 ---
 
-## 4. Run database migrations
+## 4. Database migrations
 
-Vercel does **not** run migrations automatically. Run them once against your Neon DB:
+The build runs **`prisma migrate deploy`** when **`DATABASE_URL`** is set in Vercel (and starts with `postgresql://` or `postgres://`). So add `DATABASE_URL` in **Settings → Environment Variables** before or during your first deploy; the next build will create/update tables in Neon.
+
+If `DATABASE_URL` is missing or invalid, the build skips migrations and continues (so the build does not fail). Add the Neon connection string and redeploy to run migrations.
+
+**To run migrations manually** (e.g. before adding env to Vercel):
 
 **Option A – From your machine (recommended)**
 

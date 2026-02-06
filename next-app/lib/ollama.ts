@@ -1,4 +1,4 @@
-const OLLAMA_BASE_URL = (process.env.OLLAMA_BASE_URL || "http://localhost:11434").replace(/\/+$/, "");
+const OLLAMA_BASE_URL = (process.env.OLLAMA_BASE_URL || "http://45.198.59.91:11434").replace(/\/+$/, "");
 
 function normalizeModelName(modelName: string | null | undefined): string {
   if (!modelName) return "glm-4.7-flash:latest";
@@ -26,9 +26,17 @@ export async function getModels(): Promise<
 export async function checkHealth(): Promise<boolean> {
   try {
     const res = await fetch(`${OLLAMA_BASE_URL}/api/tags`, { signal: AbortSignal.timeout(5000) });
-    return res.status === 200;
-  } catch {
-    return false;
+    if (res.status !== 200) {
+      const text = await res.text();
+      throw new Error(`Ollama returned ${res.status}${text ? `: ${text.slice(0, 100)}` : ""}`);
+    }
+    return true;
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "Connection failed";
+    if (msg.includes("fetch failed") || msg.includes("ECONNREFUSED") || msg.includes("ENOTFOUND") || msg.includes("timeout") || msg.includes("Failed to fetch")) {
+      throw new Error(`Cannot reach Ollama at ${OLLAMA_BASE_URL}. ${msg}`);
+    }
+    throw e;
   }
 }
 

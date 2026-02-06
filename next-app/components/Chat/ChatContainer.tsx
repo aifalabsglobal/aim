@@ -29,6 +29,8 @@ export default function ChatContainer() {
     error,
     streamError,
     refreshConversations,
+    gpuStatus,
+    gpuStatusMessage,
   } = useChatContext();
 
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -99,6 +101,13 @@ export default function ChatContainer() {
           <button type="button" onClick={() => refreshConversations()} className="px-3 py-1.5 rounded-md bg-rose-500/20 hover:bg-rose-500/30 text-sm font-medium">
             Retry
           </button>
+        </div>
+      )}
+
+      {gpuStatus !== "connected" && gpuStatus !== "checking" && (
+        <div className="relative flex items-center gap-3 px-4 py-2.5 bg-amber-500/10 border-b border-amber-500/20 text-[var(--text-primary)] text-sm">
+          <span className="font-medium">Ollama offline.</span>
+          <span className="text-[var(--text-muted)] truncate flex-1 min-w-0">{gpuStatusMessage ?? "Cannot reach Ollama. Set OLLAMA_BASE_URL and ensure the server is reachable."}</span>
         </div>
       )}
 
