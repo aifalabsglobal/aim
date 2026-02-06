@@ -7,6 +7,7 @@ import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import CodeBlock from "./CodeBlock";
 import MermaidBlock from "./MermaidBlock";
+import MarkmapBlock from "./MarkmapBlock";
 import ThinkingBlock from "./ThinkingBlock";
 import { Edit2, Copy, User, Bot, Loader2, File } from "lucide-react";
 import "katex/dist/katex.min.css";
@@ -60,6 +61,9 @@ export default function MessageItem({
         if (!inline && match) {
           const lang = match[1].toLowerCase();
           const codeStr = String(children).replace(/\n$/, "");
+          if (lang === "markmap") {
+            return <MarkmapBlock markdown={codeStr} />;
+          }
           if (lang === "mermaid" || lang === "mindmap") {
             const mermaidCode = lang === "mindmap" ? `mindmap\n${codeStr}` : codeStr;
             return <MermaidBlock code={mermaidCode} />;

@@ -520,6 +520,16 @@
   height: auto;
 }
 
+/* Dashed boxes and lines for flowchart/mindmap style */
+.aifa-mermaid-block path,
+.aifa-mermaid-block line {
+  stroke-dasharray: 6 4;
+}
+.aifa-mermaid-block rect,
+.aifa-mermaid-block polygon[points] {
+  stroke-dasharray: 6 4;
+}
+
 .prose-aifa hr {
   margin-top: 2rem;
   margin-bottom: 2rem;

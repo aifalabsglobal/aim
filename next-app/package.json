@@ -19,6 +19,8 @@
     "@microsoft/fetch-event-source": "^2.0.1",
     "katex": "^0.16.28",
     "lucide-react": "^0.563.0",
+    "markmap-lib": "^0.18.12",
+    "markmap-view": "^0.18.12",
     "mermaid": "^11.12.2",
     "next": "16.1.6",
     "react": "19.2.3",
