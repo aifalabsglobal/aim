@@ -7,21 +7,30 @@ import InputArea from "./InputArea";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import ThemeToggle from "@/components/Common/ThemeToggle";
-import { ArrowDown, Sparkles, Code2, Mail, Lightbulb, PanelLeftOpen } from "lucide-react";
+import { ArrowDown, Sparkles, Code2, Mail, Lightbulb, PanelLeftOpen, FileText } from "lucide-react";
+import { DEFAULT_SUGGESTIONS, type SuggestionItem } from "@/lib/suggestions";
 
-const suggestions = [
-  { text: "Help me check my React state logic", type: "tech", icon: Code2 },
-  { text: "Explain how quantum computing works", type: "science", icon: Lightbulb },
-  { text: "Draft an email for a client meeting", type: "writing", icon: Mail },
-];
+const SUGGESTION_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
+  code: Code2,
+  lightbulb: Lightbulb,
+  mail: Mail,
+  file: FileText,
+};
+
+function getSuggestionIcon(iconId?: string) {
+  return SUGGESTION_ICONS[iconId ?? ""] ?? Lightbulb;
+}
 
 export default function ChatContainer({
   sidebarToggle,
   isSidebarOpen = false,
+  suggestions: suggestionsProp,
 }: {
   sidebarToggle?: () => void;
   isSidebarOpen?: boolean;
+  suggestions?: SuggestionItem[];
 } = {}) {
+  const suggestions = suggestionsProp ?? DEFAULT_SUGGESTIONS;
   const {
     messages,
     sendMessage,
@@ -186,12 +195,12 @@ export default function ChatContainer({
                     disabled={isStreaming && !streamingContent && !isThinking}
                   />
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                   {suggestions.map((s, idx) => {
-                    const Icon = s.icon;
+                    const Icon = getSuggestionIcon(s.iconId);
                     return (
                       <Card
-                        key={idx}
+                        key={s.text + idx}
                         className="cursor-pointer border-[var(--border-color)] bg-[var(--bg-primary)] shadow-sm transition-all hover:shadow-md hover:border-[var(--border-hover)] hover:bg-[var(--bg-secondary)]/50"
                       >
                         <button type="button" onClick={() => sendMessage(s.text)} className="w-full text-left h-full block">
