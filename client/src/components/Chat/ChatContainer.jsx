@@ -134,11 +134,7 @@ const ChatContainer = () => {
                             Experience Aim Intelligence
                         </h1>
 
-                        <div className="w-full max-w-2xl bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-xl p-1 mb-10 shadow-sm">
-                            <div className="bg-[var(--bg-primary)] rounded-lg p-4 min-h-[60px] flex items-center text-[var(--text-secondary)]">
-                                How can AIFA help you today?
-                            </div>
-                        </div>
+                        
 
                         {/* Suggestion Cards - Minimal */}
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full px-2 max-w-3xl">

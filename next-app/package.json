@@ -1,0 +1,43 @@
+{
+  "name": "next-app",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "prisma generate && next build",
+    "postinstall": "prisma generate",
+    "start": "next start",
+    "db:seed": "prisma db seed",
+    "db:studio": "prisma studio"
+  },
+  "prisma": {
+    "seed": "npx tsx prisma/seed.ts"
+  },
+  "dependencies": {
+    "@clerk/nextjs": "^6.37.3",
+    "@microsoft/fetch-event-source": "^2.0.1",
+    "katex": "^0.16.28",
+    "lucide-react": "^0.563.0",
+    "mermaid": "^11.12.2",
+    "next": "16.1.6",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "react-markdown": "^10.1.0",
+    "react-syntax-highlighter": "^16.1.0",
+    "rehype-katex": "^7.0.1",
+    "remark-gfm": "^4.0.1",
+    "remark-math": "^6.0.0",
+    "uuid": "^13.0.0"
+  },
+  "devDependencies": {
+    "@prisma/client": "^6.19.2",
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "prisma": "^6.19.2",
+    "tailwindcss": "^4",
+    "tsx": "^4.19.2",
+    "typescript": "^5"
+  }
+}
