@@ -5,7 +5,7 @@ import { Square, Paperclip, ArrowUp, Loader2, Mic, MicOff } from "lucide-react";
 import { api } from "@/lib/api";
 import AttachmentPreview from "./AttachmentPreview";
 
-/** Minimal type for Web Speech API recognition (not in all TS libs). */
+/** Browser Web Speech API (fallback when no local Whisper). */
 type SpeechRecognitionLike = {
   start(): void;
   stop(): void;
@@ -42,14 +42,19 @@ export default function InputArea({
   const [attachments, setAttachments] = useState<Att[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const [isTranscribing, setIsTranscribing] = useState(false);
+  const [useWhisper, setUseWhisper] = useState<boolean | null>(null);
   const [isListening, setIsListening] = useState(false);
-  const [hasSpeechApi, setHasSpeechApi] = useState(false);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const chunksRef = useRef<Blob[]>([]);
   const recognitionRef = useRef<{ stop: () => void } | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    setHasSpeechApi(!!getSpeechRecognitionAPI());
+    api.transcribeAvailable().then(setUseWhisper).catch(() => setUseWhisper(false));
   }, []);
 
   useEffect(() => {
@@ -106,16 +111,22 @@ export default function InputArea({
 
   const canSend = (message.trim() || attachments.length > 0) && !disabled && !isStreaming && !isUploading;
 
-  const toggleVoice = useCallback(() => {
-    const SpeechRecognitionAPI = getSpeechRecognitionAPI();
-    if (!SpeechRecognitionAPI) return;
-    if (isListening) {
-      recognitionRef.current?.stop();
-      recognitionRef.current = null;
-      setIsListening(false);
-      return;
+  const stopRecording = useCallback(() => {
+    const mr = mediaRecorderRef.current;
+    const stream = streamRef.current;
+    if (mr && mr.state !== "inactive") {
+      mr.stop();
     }
-    const recognition = new SpeechRecognitionAPI();
+    stream?.getTracks().forEach((t) => t.stop());
+    streamRef.current = null;
+    mediaRecorderRef.current = null;
+    setIsRecording(false);
+  }, []);
+
+  const startWebSpeech = useCallback(() => {
+    const SpeechAPI = getSpeechRecognitionAPI();
+    if (!SpeechAPI) return;
+    const recognition = new SpeechAPI();
     recognition.continuous = true;
     recognition.interimResults = true;
     recognition.lang = "en-US";
@@ -138,10 +149,66 @@ export default function InputArea({
     recognitionRef.current = recognition;
     recognition.start();
     setIsListening(true);
-  }, [isListening]);
+  }, []);
+
+  const toggleVoice = useCallback(async () => {
+    if (useWhisper === true) {
+      if (isRecording) {
+        stopRecording();
+        return;
+      }
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        streamRef.current = stream;
+        chunksRef.current = [];
+        const mime = MediaRecorder.isTypeSupported("audio/webm;codecs=opus")
+          ? "audio/webm;codecs=opus"
+          : "audio/webm";
+        const recorder = new MediaRecorder(stream);
+        mediaRecorderRef.current = recorder;
+        recorder.ondataavailable = (e) => {
+          if (e.data.size > 0) chunksRef.current.push(e.data);
+        };
+        recorder.onstop = async () => {
+          stream.getTracks().forEach((t) => t.stop());
+          streamRef.current = null;
+          mediaRecorderRef.current = null;
+          setIsRecording(false);
+          if (chunksRef.current.length === 0) return;
+          setIsTranscribing(true);
+          try {
+            const blob = new Blob(chunksRef.current, { type: mime });
+            const file = new File([blob], "recording.webm", { type: blob.type });
+            const { text } = await api.transcribeAudio(file, "en");
+            if (text) setMessage((prev) => (prev ? `${prev} ${text}` : text).trim());
+          } catch (err) {
+            console.error("Transcription failed:", err);
+          } finally {
+            setIsTranscribing(false);
+          }
+        };
+        recorder.start();
+        setIsRecording(true);
+      } catch (err) {
+        console.error("Microphone access failed:", err);
+      }
+      return;
+    }
+    if (useWhisper === false) {
+      if (isListening) {
+        recognitionRef.current?.stop();
+        recognitionRef.current = null;
+        setIsListening(false);
+        return;
+      }
+      startWebSpeech();
+    }
+  }, [useWhisper, isRecording, isListening, stopRecording, startWebSpeech]);
 
   useEffect(() => {
     return () => {
+      mediaRecorderRef.current?.state !== "inactive" && mediaRecorderRef.current?.stop();
+      streamRef.current?.getTracks().forEach((t) => t.stop());
       recognitionRef.current?.stop();
       recognitionRef.current = null;
     };
@@ -174,17 +241,31 @@ export default function InputArea({
           <button
             type="button"
             onClick={toggleVoice}
-            disabled={isUploading || isStreaming || !hasSpeechApi}
-            className={`p-2.5 rounded-xl transition-all ${isListening ? "bg-rose-500/15 text-rose-500" : "text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)]"} ${!hasSpeechApi ? "opacity-60 cursor-not-allowed" : ""}`}
+            disabled={isUploading || isStreaming || isTranscribing || useWhisper === null}
+            className={`p-2.5 rounded-xl transition-all ${isRecording || isListening ? "bg-rose-500/15 text-rose-500" : "text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)]"}`}
             title={
-              !hasSpeechApi
-                ? "Voice input not supported in this browser"
-                : isListening
-                  ? "Stop listening"
-                  : "Voice input"
+              useWhisper === null
+                ? "Checking…"
+                : isTranscribing
+                  ? "Transcribing…"
+                  : isRecording
+                    ? "Stop recording (Whisper)"
+                    : isListening
+                      ? "Stop listening (browser)"
+                      : useWhisper
+                        ? "Voice input (Whisper)"
+                        : "Voice input (browser)"
             }
           >
-            {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+            {useWhisper === null ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : isTranscribing ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : isRecording || isListening ? (
+              <MicOff className="w-4 h-4" />
+            ) : (
+              <Mic className="w-4 h-4" />
+            )}
           </button>
           <button
             type="button"

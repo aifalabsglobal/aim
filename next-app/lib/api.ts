@@ -57,4 +57,17 @@ export const api = {
     const data = await res.json();
     return { ...data, id: data.path ?? data.filename ?? crypto.randomUUID() };
   },
+  transcribeAvailable: async (): Promise<boolean> => {
+    const res = await fetch(`${API}/transcribe`, { method: "GET" });
+    return res.ok;
+  },
+  transcribeAudio: async (file: File, language?: string): Promise<{ text: string }> => {
+    const form = new FormData();
+    form.append("file", file);
+    if (language) form.append("language", language);
+    const res = await fetch(`${API}/transcribe`, { method: "POST", body: form });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data?.error ?? "Transcription failed");
+    return { text: data?.text ?? "" };
+  },
 };
