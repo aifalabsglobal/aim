@@ -8,7 +8,6 @@ import { ThemeProvider } from "@/context/ThemeContext";
 import ThemeToggle from "@/components/Common/ThemeToggle";
 import SettingsModal from "@/components/Common/SettingsModal";
 import { PanelLeftOpen } from "lucide-react";
-import { SignedIn, SignedOut, UserButton, SignInButton, SignUpButton } from "@clerk/nextjs";
 import "katex/dist/katex.min.css";
 
 export default function ChatPage() {
@@ -63,17 +62,6 @@ export default function ChatPage() {
               </div>
               <div className="absolute right-4 flex items-center gap-2 z-30">
                 <ThemeToggle />
-                <SignedOut>
-                  <SignInButton mode="modal" />
-                  <SignUpButton mode="modal">
-                    <button type="button" className="rounded-full font-medium text-sm h-9 px-4 cursor-pointer bg-[var(--accent-primary)] text-white hover:opacity-90 transition-opacity">
-                      Sign up
-                    </button>
-                  </SignUpButton>
-                </SignedOut>
-                <SignedIn>
-                  <UserButton afterSignOutUrl="/" />
-                </SignedIn>
               </div>
             </header>
             <ChatContainer />

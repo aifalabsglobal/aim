@@ -3,9 +3,22 @@
 import { useState } from "react";
 import { useChatContext } from "@/context/ChatContext";
 import ModelSwitcher from "../Common/ModelSwitcher";
-import { Plus, PanelLeftClose, Edit2, Trash2, Check, X, Settings } from "lucide-react";
+import { SignedIn, SignedOut, SignInButton, SignUpButton, UserButton, useUser } from "@clerk/nextjs";
+import { Plus, PanelLeftClose, Edit2, Trash2, Check, X, LogIn, UserPlus } from "lucide-react";
 
 type Conversation = { id: string; title: string | null; updatedAt?: string; createdAt?: string };
+
+function SidebarUserLabel() {
+  const { user } = useUser();
+  const name = user?.fullName ?? user?.primaryEmailAddress?.emailAddress ?? "Account";
+  const sub = user?.primaryEmailAddress?.emailAddress && user?.fullName ? user.primaryEmailAddress.emailAddress : null;
+  return (
+    <div className="flex-1 min-w-0">
+      <div className="text-sm font-medium text-[var(--text-primary)] truncate">{name}</div>
+      {sub && <div className="text-[11px] text-[var(--text-muted)] truncate">{sub}</div>}
+    </div>
+  );
+}
 
 export default function Sidebar({ toggle }: { toggle: () => void }) {
   const { conversations, currentConversationId, setCurrentConversationId, createNewChat, deleteConversation } = useChatContext();
@@ -122,17 +135,35 @@ export default function Sidebar({ toggle }: { toggle: () => void }) {
       <div className="px-3 py-2 border-t border-[var(--border-color)]">
         <ModelSwitcher sidebarMode />
       </div>
-      <div className="p-3 pt-0">
-        <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-[var(--bg-hover)] cursor-pointer transition-colors group">
-          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[var(--accent-primary)] to-[var(--accent-secondary)] text-white flex items-center justify-center font-bold text-xs shadow-sm">
-            JD
+      <div className="p-3 pt-0 space-y-2">
+        <SignedIn>
+          <div className="flex items-center gap-3 p-2.5 rounded-xl bg-[var(--bg-tertiary)]/80 border border-[var(--border-color)]/50 hover:border-[var(--border-hover)] transition-colors">
+            <UserButton afterSignOutUrl="/" />
+            <SidebarUserLabel />
           </div>
-          <div className="flex-1 min-w-0">
-            <div className="text-sm font-medium text-[var(--text-primary)] truncate">John Doe</div>
-            <div className="text-[11px] text-[var(--text-muted)] truncate">Pro Plan</div>
+        </SignedIn>
+        <SignedOut>
+          <div className="flex flex-col gap-2">
+            <SignUpButton mode="modal">
+              <button
+                type="button"
+                className="w-full flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl font-medium text-sm bg-[var(--accent-primary)] text-white hover:opacity-95 active:scale-[0.98] transition-all shadow-sm"
+              >
+                <UserPlus className="w-4 h-4" />
+                Sign up
+              </button>
+            </SignUpButton>
+            <SignInButton mode="modal">
+              <button
+                type="button"
+                className="w-full flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl font-medium text-sm border border-[var(--border-color)] text-[var(--text-primary)] hover:bg-[var(--bg-hover)] active:scale-[0.98] transition-all"
+              >
+                <LogIn className="w-4 h-4" />
+                Sign in
+              </button>
+            </SignInButton>
           </div>
-          <Settings className="w-4 h-4 text-[var(--text-muted)] group-hover:text-[var(--text-primary)]" />
-        </div>
+        </SignedOut>
       </div>
     </div>
   );
