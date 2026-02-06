@@ -59,14 +59,25 @@ export async function POST(request: NextRequest) {
     }
 
     const userMessageId = randomUUID();
-    await prisma.message.create({
-      data: {
-        id: userMessageId,
-        conversationId,
-        role: "user",
-        content: message,
-      },
-    });
+    try {
+      await prisma.message.create({
+        data: {
+          id: userMessageId,
+          conversationId,
+          role: "user",
+          content: message,
+        },
+      });
+    } catch (err: unknown) {
+      const prismaErr = err as { code?: string };
+      if (prismaErr?.code === "P2003") {
+        return NextResponse.json(
+          { error: "Conversation no longer exists. Please start a new chat.", code: "CONVERSATION_GONE" },
+          { status: 404 }
+        );
+      }
+      throw err;
+    }
 
     if (attachments.length > 0) {
       for (const att of attachments) {
@@ -165,16 +176,25 @@ export async function POST(request: NextRequest) {
           }
           send({ type: "done", stats: result.stats });
 
-          await prisma.message.create({
-            data: {
-              id: assistantMessageId,
-              conversationId,
-              role: "assistant",
-              content: result.content,
-              thinking: result.thinking || null,
-              thinkingDuration: result.thinkingDuration ?? null,
-            },
-          });
+          try {
+            await prisma.message.create({
+              data: {
+                id: assistantMessageId,
+                conversationId,
+                role: "assistant",
+                content: result.content,
+                thinking: result.thinking || null,
+                thinkingDuration: result.thinkingDuration ?? null,
+              },
+            });
+          } catch (saveErr: unknown) {
+            const prismaErr = saveErr as { code?: string };
+            if (prismaErr?.code === "P2003") {
+              send({ type: "error", message: "Conversation no longer exists. Start a new chat." });
+            } else {
+              throw saveErr;
+            }
+          }
         } catch (err) {
           const msg = (err as Error).message;
           if (msg === "Generation cancelled" || msg.includes("abort")) {

@@ -6,7 +6,8 @@ import MessageItem from "./MessageItem";
 import InputArea from "./InputArea";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowDown, Sparkles, Code2, Mail, Lightbulb } from "lucide-react";
+import ThemeToggle from "@/components/Common/ThemeToggle";
+import { ArrowDown, Sparkles, Code2, Mail, Lightbulb, PanelLeftOpen } from "lucide-react";
 
 const suggestions = [
   { text: "Help me check my React state logic", type: "tech", icon: Code2 },
@@ -14,7 +15,13 @@ const suggestions = [
   { text: "Draft an email for a client meeting", type: "writing", icon: Mail },
 ];
 
-export default function ChatContainer() {
+export default function ChatContainer({
+  sidebarToggle,
+  isSidebarOpen = false,
+}: {
+  sidebarToggle?: () => void;
+  isSidebarOpen?: boolean;
+} = {}) {
   const {
     messages,
     sendMessage,
@@ -95,8 +102,37 @@ export default function ChatContainer() {
       {/* Immersive background gradient */}
       <div className="chat-window-bg pointer-events-none absolute inset-0 bg-gradient-to-b from-[var(--bg-secondary)]/40 via-transparent to-[var(--bg-primary)]" aria-hidden />
 
+      <div
+        ref={scrollContainerRef}
+        onScroll={handleScroll}
+        className="relative flex-1 overflow-y-auto scrollbar-thin flex flex-col min-h-0"
+      >
+        {/* Sticky header: same place as messages scroll, easy navigation */}
+        <header className="sticky top-0 z-10 flex items-center px-4 py-3 h-[56px] bg-[var(--bg-primary)]/95 backdrop-blur-sm border-b border-[var(--border-color)]/50 shrink-0">
+          <div className="absolute left-4 flex items-center gap-2">
+            {sidebarToggle && !isSidebarOpen && (
+              <button
+                type="button"
+                onClick={sidebarToggle}
+                className="p-2 rounded-lg hover:bg-[var(--bg-hover)] text-[var(--text-secondary)] transition-colors"
+                aria-label="Open sidebar"
+              >
+                <PanelLeftOpen className="w-5 h-5" />
+              </button>
+            )}
+          </div>
+          <div className="w-full flex justify-center pointer-events-none">
+            {!isSidebarOpen && (
+              <span className="font-serif font-bold text-lg text-[var(--text-primary)] tracking-tight">AIM Intelligence</span>
+            )}
+          </div>
+          <div className="absolute right-4 flex items-center gap-2">
+            <ThemeToggle />
+          </div>
+        </header>
+
       {(error || streamError) && (
-        <div className="relative flex items-center justify-between gap-3 px-4 py-2.5 bg-rose-500/10 border-b border-rose-500/20 text-[var(--text-primary)] text-sm">
+        <div className="relative flex items-center justify-between gap-3 px-4 py-2.5 bg-rose-500/10 border-b border-rose-500/20 text-[var(--text-primary)] text-sm shrink-0">
           <span>{error || streamError}</span>
           <button type="button" onClick={() => refreshConversations()} className="px-3 py-1.5 rounded-md bg-rose-500/20 hover:bg-rose-500/30 text-sm font-medium">
             Retry
@@ -105,14 +141,14 @@ export default function ChatContainer() {
       )}
 
       {gpuStatus !== "connected" && gpuStatus !== "checking" && (
-        <div className="relative flex items-center gap-3 px-4 py-2.5 bg-amber-500/10 border-b border-amber-500/20 text-[var(--text-primary)] text-sm">
+        <div className="relative flex items-center gap-3 px-4 py-2.5 bg-amber-500/10 border-b border-amber-500/20 text-[var(--text-primary)] text-sm shrink-0">
           <span className="font-medium">Ollama offline.</span>
           <span className="text-[var(--text-muted)] truncate flex-1 min-w-0">{gpuStatusMessage ?? "Cannot reach Ollama. Set OLLAMA_BASE_URL and ensure the server is reachable."}</span>
         </div>
       )}
 
       {displayMessages.length > 0 && isStreaming && (
-        <div className="relative flex items-center gap-2 px-4 py-1.5 border-b border-[var(--border-color)]/50 bg-[var(--bg-secondary)]/50">
+        <div className="relative flex items-center gap-2 px-4 py-1.5 border-b border-[var(--border-color)]/50 bg-[var(--bg-secondary)]/50 shrink-0">
           <Badge variant="default" className="gap-1">
             <Sparkles className="w-3 h-3" />
             AI is thinking…
@@ -120,11 +156,7 @@ export default function ChatContainer() {
         </div>
       )}
 
-      <div
-        ref={scrollContainerRef}
-        onScroll={handleScroll}
-        className="relative flex-1 overflow-y-auto scrollbar-thin pb-36 md:pb-40 px-2"
-      >
+      <div className="flex-1 min-h-0 pb-36 md:pb-40 px-2">
         {displayMessages.length === 0 ? (
           <div className="h-full flex flex-col items-center justify-center px-4 py-16 max-w-3xl mx-auto">
             {currentConversationId && isLoading ? (
@@ -145,6 +177,14 @@ export default function ChatContainer() {
                   <p className="text-[var(--text-secondary)] text-base">
                     Ask anything. Get answers with tables, diagrams, and clear structure.
                   </p>
+                </div>
+                <div className="max-w-3xl mx-auto">
+                  <InputArea
+                    onSend={sendMessage}
+                    onStop={stopStream}
+                    isStreaming={isStreaming}
+                    disabled={isStreaming && !streamingContent && !isThinking}
+                  />
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   {suggestions.map((s, idx) => {
@@ -192,6 +232,7 @@ export default function ChatContainer() {
         )}
         <div ref={bottomRef} className="h-4" />
       </div>
+      </div>
 
       {showScrollButton && (
         <button
@@ -204,21 +245,23 @@ export default function ChatContainer() {
         </button>
       )}
 
-      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-[var(--bg-primary)] via-[var(--bg-primary)] to-transparent pt-8 pb-6 px-4">
-        <div className="max-w-3xl mx-auto">
-          <InputArea
-            onSend={sendMessage}
-            onStop={stopStream}
-            isStreaming={isStreaming}
-            disabled={isStreaming && !streamingContent && !isThinking}
-          />
-          <div className="text-center mt-3">
-            <p className="text-[11px] text-[var(--text-muted)]">
-              Worlds best inference model from AIM Research Labs
-            </p>
+      {displayMessages.length > 0 && (
+        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-[var(--bg-primary)] via-[var(--bg-primary)] to-transparent pt-8 pb-6 px-4">
+          <div className="max-w-3xl mx-auto">
+            <InputArea
+              onSend={sendMessage}
+              onStop={stopStream}
+              isStreaming={isStreaming}
+              disabled={isStreaming && !streamingContent && !isThinking}
+            />
+            <div className="text-center mt-3">
+              <p className="text-[11px] text-[var(--text-muted)]">
+                Worlds best inference model from AIM Research Labs
+              </p>
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
