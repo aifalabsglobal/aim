@@ -2,12 +2,10 @@
 
 If your Vercel build fails with:
 
-```text
-prisma: command not found
-Error: Command "npm run build" exited with 127
-```
+- **`prisma: command not found`** (exit 127), or  
+- **`No Output Directory named "public" found`**
 
-**Cause:** Vercel is building from the **repo root**, so `npm install` runs there and never installs Prisma (which lives in `next-app`).
+**Cause:** Vercel is using the **repo root** as the project root. Prisma lives in `next-app`, and without Next.js detected Vercel looks for a `public` output directory.
 
 **Fix (recommended):**
 
@@ -22,4 +20,4 @@ After this, Vercel will run `npm install` and `npm run build` **inside** `next-a
 ---
 
 **If you keep Root Directory blank:**  
-The repo has a root `vercel.json` that sets `installCommand` and `buildCommand` to run in `next-app`. If the build still fails, your Vercel project may have **Override** for Install/Build Command in Settings → General. Remove any overrides so the root `vercel.json` is used, or set Install Command to `cd next-app && npm install` and Build Command to `cd next-app && npm run build` manually.
+The repo has a root `vercel.json` that sets `framework` to `nextjs`, `outputDirectory` to `next-app/.next`, and install/build to run in `next-app`. That may fix the "public" error. If the deployment still fails or the app doesn’t run correctly, set **Root Directory** to **`next-app`** (recommended).
