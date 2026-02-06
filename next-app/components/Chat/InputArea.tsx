@@ -134,7 +134,7 @@ export default function InputArea({
             className={`p-2 rounded-lg transition-all duration-200 ${isStreaming || canSend ? "bg-[var(--accent-primary)] text-white hover:bg-[var(--accent-secondary)]" : "bg-[var(--bg-hover)] text-[var(--text-muted)] cursor-not-allowed"}`}
           >
             {isStreaming ? (
-              <Square className="w-4 h-4 fill-current" title="Stop generating" />
+              <Square className="w-4 h-4 fill-current" />
             ) : isUploading ? (
               <Loader2 className="w-4 h-4 animate-spin" />
             ) : (
