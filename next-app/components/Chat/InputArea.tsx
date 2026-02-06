@@ -91,18 +91,6 @@ export default function InputArea({
         if (files.length) uploadFiles(files);
       }}
     >
-      {isStreaming && (
-        <div className="absolute -top-14 left-1/2 -translate-x-1/2 z-20">
-          <button
-            type="button"
-            onClick={onStop}
-            className="flex items-center gap-2 px-4 py-2 bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-md text-[13px] font-medium text-[var(--text-primary)] hover:bg-[var(--bg-hover)] shadow-sm transition-all"
-          >
-            <Square className="w-2.5 h-2.5 fill-current" />
-            Stop generating
-          </button>
-        </div>
-      )}
       <div className={`input-box p-2 transition-all duration-200 ${isDragOver ? "border-emerald-500 ring-1 ring-emerald-500/20" : ""}`}>
         <textarea
           ref={textareaRef}
@@ -140,11 +128,18 @@ export default function InputArea({
           </div>
           <button
             type="button"
-            onClick={() => handleSubmit()}
-            disabled={!canSend}
-            className={`p-2 rounded-lg transition-all duration-200 ${canSend ? "bg-[var(--accent-primary)] text-white hover:bg-[var(--accent-secondary)]" : "bg-[var(--bg-hover)] text-[var(--text-muted)] cursor-not-allowed"}`}
+            onClick={isStreaming ? onStop : () => handleSubmit()}
+            disabled={!isStreaming && !canSend}
+            title={isStreaming ? "Stop generating" : "Send"}
+            className={`p-2 rounded-lg transition-all duration-200 ${isStreaming || canSend ? "bg-[var(--accent-primary)] text-white hover:bg-[var(--accent-secondary)]" : "bg-[var(--bg-hover)] text-[var(--text-muted)] cursor-not-allowed"}`}
           >
-            {isUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArrowUp className="w-4 h-4" />}
+            {isStreaming ? (
+              <Square className="w-4 h-4 fill-current" title="Stop generating" />
+            ) : isUploading ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <ArrowUp className="w-4 h-4" />
+            )}
           </button>
         </div>
       </div>
