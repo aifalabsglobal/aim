@@ -104,6 +104,10 @@
     line-height: 1.7;
     letter-spacing: normal;
     color: var(--text-primary);
+    max-width: 100%;
+    min-width: 0;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
   }
 
   .message-ai .prose-aifa {
@@ -331,6 +335,8 @@
 
 .prose-aifa p {
   margin-bottom: 1em;
+  text-align: justify;
+  hyphens: auto;
 }
 
 .prose-aifa ul {
@@ -477,6 +483,7 @@
 .prose-aifa table,
 .aifa-table {
   width: 100%;
+  max-width: 100%;
   text-align: left;
   border-collapse: collapse;
   margin-top: 1.5rem;

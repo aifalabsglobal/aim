@@ -42,26 +42,66 @@ export async function checkHealth(): Promise<boolean> {
   }
 }
 
-export type StreamChunk = { type: "thinking_chunk"; content: string } | { type: "content_chunk"; content: string };
+export type StreamChunk =
+  | { type: "thinking_chunk"; content: string }
+  | { type: "content_chunk"; content: string }
+  | { type: "tool_calls"; tool_calls: OllamaToolCall[] };
+
+export type OllamaTool = {
+  type: "function";
+  function: { name: string; description: string; parameters: { type: "object"; properties?: Record<string, unknown>; required?: string[] } };
+};
+
+export type OllamaToolCall = {
+  function: { name: string; arguments?: Record<string, unknown> };
+};
+
+type ChatMessage = {
+  role: string;
+  content: string;
+  images?: string[];
+  tool_calls?: OllamaToolCall[];
+};
+type ToolMessage = { role: "tool"; tool_name: string; content: string };
 
 export async function streamChatCompletion(
   params: {
     model: string;
-    messages: { role: string; content: string; images?: string[] }[];
+    messages: (ChatMessage | ToolMessage)[];
     options?: { temperature?: number; topP?: number; maxTokens?: number };
+    tools?: OllamaTool[];
   },
   onChunk: (chunk: StreamChunk) => void,
   signal?: AbortSignal
-): Promise<{ content: string; thinking: string; thinkingDuration: number; stats?: Record<string, unknown> }> {
+): Promise<{
+  content: string;
+  thinking: string;
+  thinkingDuration: number;
+  stats?: Record<string, unknown>;
+  tool_calls?: OllamaToolCall[];
+}> {
   const url = `${OLLAMA_BASE_URL}/api/chat`;
   const normalizedModel = normalizeModelName(params.model);
-  const body = {
+  const body: Record<string, unknown> = {
     model: normalizedModel,
-    messages: params.messages.map((m) => ({
-      role: m.role,
-      content: m.content,
-      ...(m.images?.length ? { images: m.images } : {}),
-    })),
+    messages: params.messages.map((m) => {
+      if (m.role === "tool") {
+        return { role: "tool", tool_name: (m as ToolMessage).tool_name, content: (m as ToolMessage).content };
+      }
+      const msg = m as ChatMessage;
+      const toolCalls = msg.tool_calls?.length
+        ? msg.tool_calls.map((tc, i) => ({
+            type: "function" as const,
+            function: { index: i, name: tc.function.name, arguments: tc.function.arguments },
+          }))
+        : undefined;
+      return {
+        role: msg.role,
+        content: msg.content,
+        ...(msg.images?.length ? { images: msg.images } : {}),
+        ...(toolCalls?.length ? { tool_calls: toolCalls } : {}),
+      };
+    }),
     stream: true,
     options: {
       temperature: params.options?.temperature ?? 0.7,
@@ -69,6 +109,7 @@ export async function streamChatCompletion(
       num_predict: params.options?.maxTokens ?? 4096,
     },
   };
+  if (params.tools?.length) body.tools = params.tools;
 
   const res = await fetch(url, {
     method: "POST",
@@ -95,6 +136,7 @@ export async function streamChatCompletion(
   let fullContent = "";
   let thinkingContent = "";
   let stats: Record<string, unknown> = {};
+  const toolCallsAcc: OllamaToolCall[] = [];
 
   while (true) {
     const { done, value } = await reader.read();
@@ -107,7 +149,11 @@ export async function streamChatCompletion(
       try {
         const data = JSON.parse(line) as {
           error?: string;
-          message?: { content?: string; thinking?: string };
+          message?: {
+            content?: string;
+            thinking?: string;
+            tool_calls?: { function?: { name?: string; arguments?: Record<string, unknown> } }[];
+          };
           response?: string;
           done?: boolean;
           total_duration?: number;
@@ -124,6 +170,16 @@ export async function streamChatCompletion(
             fullContent += content;
             onChunk({ type: "content_chunk", content });
           }
+          if (data.message.tool_calls?.length) {
+            toolCallsAcc.length = 0;
+            for (const tc of data.message.tool_calls) {
+              if (tc?.function?.name)
+                toolCallsAcc.push({
+                  function: { name: tc.function.name, arguments: tc.function.arguments ?? {} },
+                });
+            }
+            if (toolCallsAcc.length) onChunk({ type: "tool_calls", tool_calls: [...toolCallsAcc] });
+          }
         } else if (data.response) {
           fullContent += data.response;
           onChunk({ type: "content_chunk", content: data.response });
@@ -138,5 +194,11 @@ export async function streamChatCompletion(
   }
 
   const thinkingDuration = (stats.promptEvalDuration as number) ? (stats.promptEvalDuration as number) / 1e9 : 0;
-  return { content: fullContent, thinking: thinkingContent, thinkingDuration, stats };
+  return {
+    content: fullContent,
+    thinking: thinkingContent,
+    thinkingDuration,
+    stats,
+    ...(toolCallsAcc.length ? { tool_calls: toolCallsAcc } : {}),
+  };
 }

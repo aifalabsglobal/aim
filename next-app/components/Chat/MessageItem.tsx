@@ -140,7 +140,7 @@ export default function MessageItem({
 
   return (
     <div className={`message-container group py-5 ${isUser ? "message-user" : "message-ai"}`}>
-      <div className={`flex gap-4 max-w-3xl mx-auto md:px-0 ${isUser ? "flex-row-reverse" : ""}`}>
+      <div className={`flex gap-3 sm:gap-4 w-full max-w-3xl mx-auto px-1 sm:px-2 md:px-0 min-w-0 ${isUser ? "flex-row-reverse" : ""}`}>
         <div className="flex-shrink-0 mt-1">
           {isUser ? (
             <div className="w-8 h-8 rounded-full bg-[var(--bg-tertiary)] flex items-center justify-center text-[var(--text-secondary)]">
@@ -185,7 +185,7 @@ export default function MessageItem({
               </div>
             </div>
           ) : (
-            <div className={`w-full ${isUser ? "bg-[var(--bg-user-message)] p-3 rounded-xl rounded-tr-sm max-w-[85%]" : ""}`}>
+            <div className={`w-full min-w-0 max-w-full ${isUser ? "bg-[var(--bg-user-message)] p-3 rounded-xl rounded-tr-sm max-w-[85%] sm:max-w-[90%]" : ""}`}>
               {message.thinking != null && !isUser && (
                 <ThinkingBlock
                   content={message.thinking}
@@ -193,7 +193,7 @@ export default function MessageItem({
                   isStreaming={message.isStreaming && !message.content}
                 />
               )}
-              <div className="prose-aifa max-w-none">
+              <div className="prose-aifa w-full min-w-0 max-w-full break-words">
                 <ReactMarkdown
                   remarkPlugins={[remarkMath, remarkGfm]}
                   rehypePlugins={[rehypeKatex]}

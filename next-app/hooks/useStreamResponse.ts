@@ -67,6 +67,12 @@ export function useStreamResponse() {
                 case "done":
                   setIsStreaming(false);
                   break;
+                case "tool_use":
+                  /* MCP tool executed; more content may follow */
+                  break;
+                case "cancelled":
+                  setIsStreaming(false);
+                  break;
                 case "error":
                   setStreamError(data.message ?? "Error");
                   setIsStreaming(false);

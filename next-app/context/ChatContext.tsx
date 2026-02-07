@@ -31,6 +31,9 @@ const defaultSettings: Settings = {
   systemPrompt: "",
 };
 
+export type McpToolInfo = { name: string; description?: string };
+export type McpInfo = { tools: McpToolInfo[]; servers: string[] };
+
 const ChatContext = createContext<{
   conversations: Conversation[];
   currentConversationId: string | null;
@@ -38,6 +41,7 @@ const ChatContext = createContext<{
   currentModel: string | null;
   setCurrentModel: (name: string) => void;
   availableModels: { name: string; displayName?: string; id?: string }[];
+  mcpInfo: McpInfo | null;
   gpuStatus: string;
   gpuStatusMessage: string | null;
   messages: Message[];
@@ -71,6 +75,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
   const [currentModel, setCurrentModel] = useState<string | null>(null);
   const [availableModels, setAvailableModels] = useState<{ name: string; displayName?: string; id?: string }[]>([]);
+  const [mcpInfo, setMcpInfo] = useState<McpInfo | null>(null);
   const [gpuStatus, setGpuStatus] = useState("checking");
   const [gpuStatusMessage, setGpuStatusMessage] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -114,21 +119,32 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     setSettings((prev) => ({ ...prev, ...s }));
   }, []);
 
+  const TOOL_CAPABLE_PATTERNS = [/^qwen3/i, /^qwen2\.5/i, /^llama3\.2/i, /^llama3\.1/i, /^mistral.*instruct/i, /^codellama/i];
+  const isToolCapable = (name: string) => TOOL_CAPABLE_PATTERNS.some((p) => p.test(name));
+  const firstToolCapableModel = (models: { name: string }[]) => models.find((m) => isToolCapable(m.name));
+
   const fetchModels = useCallback(async () => {
     try {
-      const data = await api.getModels();
+      const [modelsRes, mcpRes] = await Promise.all([api.getModels(), api.getMcpTools()]);
+      const data = modelsRes as { models?: { name: string; displayName?: string; id?: string }[]; defaultModel?: string };
       const models = Array.isArray(data?.models) ? data.models : [];
       setAvailableModels(models);
+      const tools = Array.isArray(mcpRes?.tools) ? mcpRes.tools : [];
+      const servers = Array.isArray(mcpRes?.servers) ? mcpRes.servers : [];
+      setMcpInfo(tools.length > 0 ? { tools: tools.map((t: { function?: { name?: string; description?: string } }) => ({ name: t.function?.name ?? "tool", description: t.function?.description })), servers } : null);
       const saved = typeof window !== "undefined" ? localStorage.getItem("selectedModel") : null;
       if (saved && models.some((m: { name: string }) => m.name === saved)) {
         setCurrentModel(saved);
       } else if (data.defaultModel && models.some((m: { name: string }) => m.name === data.defaultModel)) {
         setCurrentModel(data.defaultModel);
-      } else if (models.length > 0 && !currentModel) {
-        setCurrentModel(models[0].name);
+      } else if (models.length > 0) {
+        const preferred = tools.length > 0 ? firstToolCapableModel(models) : null;
+        if (preferred && !currentModel) setCurrentModel(preferred.name);
+        else if (!currentModel) setCurrentModel(models[0].name);
       }
     } catch {
       setAvailableModels([]);
+      setMcpInfo(null);
     }
   }, [currentModel]);
 
@@ -283,6 +299,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         currentModel,
         setCurrentModel: selectModel,
         availableModels,
+        mcpInfo,
         gpuStatus,
         gpuStatusMessage,
         messages,

@@ -49,6 +49,7 @@ export default function ChatContainer({
     refreshConversations,
     gpuStatus,
     gpuStatusMessage,
+    mcpInfo,
   } = useChatContext();
 
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -138,6 +139,11 @@ export default function ChatContainer({
             )}
           </div>
           <div className="absolute right-4 flex items-center gap-2">
+            {mcpInfo && mcpInfo.tools.length > 0 && (
+              <span className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 text-xs font-medium" title={`${mcpInfo.tools.length} tools from ${mcpInfo.servers.length} server(s)`}>
+                MCP: {mcpInfo.tools.length} tools · {mcpInfo.servers.length} server{mcpInfo.servers.length !== 1 ? "s" : ""}
+              </span>
+            )}
             {onOpenSettings && (
               <button
                 type="button"
@@ -177,7 +183,7 @@ export default function ChatContainer({
         </div>
       )}
 
-      <div className="flex-1 min-h-0 pb-36 md:pb-40 px-2">
+      <div className="flex-1 min-h-0 pb-36 md:pb-40 px-2 sm:px-4 w-full min-w-0">
         {displayMessages.length === 0 ? (
           <div className="h-full flex flex-col items-center justify-center px-4 py-16 max-w-3xl mx-auto">
             {currentConversationId && isLoading ? (
@@ -242,7 +248,7 @@ export default function ChatContainer({
             )}
           </div>
         ) : (
-          <div className="flex flex-col gap-8 max-w-3xl mx-auto w-full py-4">
+          <div className="flex flex-col gap-6 sm:gap-8 max-w-3xl mx-auto w-full min-w-0 py-4 px-1 sm:px-0">
             {displayMessages.map((msg) => (
               <MessageItem
                 key={msg.id}

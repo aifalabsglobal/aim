@@ -1,13 +1,13 @@
 "use client";
 
 import { useEffect } from "react";
-import { X, Moon, Sun, Trash2 } from "lucide-react";
+import { X, Moon, Sun, Trash2, Wrench } from "lucide-react";
 import { useTheme } from "@/context/ThemeContext";
 import { useChatContext } from "@/context/ChatContext";
 
 export default function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const { theme, toggleTheme } = useTheme();
-  const { settings = { temperature: 0.7, topP: 1, maxTokens: 4096, systemPrompt: "" }, updateSettings } = useChatContext();
+  const { settings = { temperature: 0.7, topP: 1, maxTokens: 4096, systemPrompt: "" }, updateSettings, mcpInfo } = useChatContext();
 
   useEffect(() => {
     if (!isOpen) return;
@@ -67,6 +67,21 @@ export default function SettingsModal({ isOpen, onClose }: { isOpen: boolean; on
               </div>
             </div>
           </section>
+          {mcpInfo && mcpInfo.tools.length > 0 && (
+            <section>
+              <h3 className="text-sm font-semibold uppercase tracking-wider text-[var(--text-muted)] mb-4 flex items-center gap-2">
+                <Wrench className="w-4 h-4 text-emerald-400" /> MCP Tools ({mcpInfo.tools.length} from {mcpInfo.servers.length} server{mcpInfo.servers.length !== 1 ? "s" : ""})
+              </h3>
+              <div className="rounded-lg border border-[var(--border-color)] divide-y divide-[var(--border-color)] max-h-48 overflow-y-auto scrollbar-thin">
+                {mcpInfo.tools.map((t, i) => (
+                  <div key={t.name + i} className="px-4 py-2.5">
+                    <p className="text-sm font-medium text-[var(--text-primary)]">{t.name}</p>
+                    {t.description && <p className="text-xs text-[var(--text-muted)] mt-0.5 line-clamp-2">{t.description}</p>}
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
           <section className="pt-4 border-t border-[var(--border-color)]">
             <h3 className="text-sm font-semibold uppercase tracking-wider text-[var(--text-muted)] mb-4">Data</h3>
             <button type="button" className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-red-500/30 bg-red-500/5 text-red-400 hover:bg-red-500 hover:text-white text-sm font-medium">

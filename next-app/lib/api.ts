@@ -57,6 +57,12 @@ export const api = {
     const data = await res.json();
     return { ...data, id: data.path ?? data.filename ?? crypto.randomUUID() };
   },
+  getMcpTools: async (): Promise<{ tools: { type: "function"; function: { name: string; description: string; parameters: object } }[]; servers: string[] }> => {
+    const res = await fetch(`${API}/mcp/tools`, { method: "GET" });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) return { tools: [], servers: [] };
+    return { tools: data?.tools ?? [], servers: data?.servers ?? [] };
+  },
   transcribeAvailable: async (): Promise<boolean> => {
     const res = await fetch(`${API}/transcribe`, { method: "GET" });
     return res.ok;

@@ -1,11 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { streamChatCompletion } from "@/lib/ollama";
+import { streamChatCompletion, type OllamaTool } from "@/lib/ollama";
+import { listMcpToolsAsOllama, callMcpTool } from "@/lib/mcp";
 import { processDocument } from "@/lib/documentProcessor";
 import { generateTitle } from "@/lib/helpers";
 import fs from "fs";
 import path from "path";
 import { randomUUID } from "crypto";
+
+const MAX_TOOL_LOOPS = 5;
 
 const activeStreams = new Map<string, { abort: () => void }>();
 
@@ -115,15 +118,25 @@ export async function POST(request: NextRequest) {
         ? `${message}\n\n---\n📎 Attached Document Content:\n\n${extractedTexts.join("\n\n")}`
         : message;
 
-    const messageHistory = [
+    type ToolCallForOllama = { type: "function"; function: { index: number; name: string; arguments?: Record<string, unknown> } };
+    type Msg = { role: string; content: string; images?: string[]; tool_calls?: ToolCallForOllama[] };
+    type ToolMsg = { role: "tool"; tool_name: string; content: string };
+    let messageHistory: (Msg | ToolMsg)[] = [
       ...(options?.systemPrompt ? [{ role: "system" as const, content: options.systemPrompt }] : []),
-      ...conversation.messages.map((m) => ({ role: m.role as "user" | "assistant" | "system", content: m.content })),
+      ...conversation.messages.map((m) => ({ role: m.role as string, content: m.content })),
       {
         role: "user" as const,
         content: combinedMessage,
         ...(attachmentImages.length > 0 ? { images: attachmentImages } : {}),
       },
     ];
+
+    let mcpTools: { tools: { type: "function"; function: { name: string; description: string; parameters: object } }[]; servers: string[] } = { tools: [], servers: [] };
+    try {
+      mcpTools = await listMcpToolsAsOllama();
+    } catch {
+      // MCP optional
+    }
 
     const assistantMessageId = randomUUID();
     activeStreams.set(streamId, { abort: () => abortController.abort() });
@@ -140,41 +153,79 @@ export async function POST(request: NextRequest) {
           let thinkingStarted = false;
           let thinkingEnded = false;
           let fullThinking = "";
+          let fullContent = "";
+          let lastStats: Record<string, unknown> = {};
+          let loopCount = 0;
+          const tools: OllamaTool[] | undefined = mcpTools.tools.length ? (mcpTools.tools as OllamaTool[]) : undefined;
 
-          const result = await streamChatCompletion(
-            {
-              model: model ?? conversation.model ?? "glm-4.7-flash",
-              messages: messageHistory,
-              options: {
-                temperature: options?.temperature ?? 0.7,
-                topP: options?.topP ?? 1,
-                maxTokens: options?.maxTokens ?? 4096,
+          while (loopCount < MAX_TOOL_LOOPS) {
+            thinkingStarted = false;
+            thinkingEnded = false;
+            fullThinking = "";
+            const result = await streamChatCompletion(
+              {
+                model: model ?? conversation.model ?? "glm-4.7-flash",
+                messages: messageHistory,
+                options: {
+                  temperature: options?.temperature ?? 0.7,
+                  topP: options?.topP ?? 1,
+                  maxTokens: options?.maxTokens ?? 4096,
+                },
+                tools,
               },
-            },
-            (chunk) => {
-              if (chunk.type === "thinking_chunk") {
-                if (!thinkingStarted) {
-                  thinkingStarted = true;
-                  send({ type: "thinking_start" });
+              (chunk) => {
+                if (chunk.type === "thinking_chunk") {
+                  if (!thinkingStarted) {
+                    thinkingStarted = true;
+                    send({ type: "thinking_start" });
+                  }
+                  fullThinking += chunk.content;
+                  send({ type: "thinking_chunk", content: chunk.content });
+                } else if (chunk.type === "content_chunk") {
+                  if (thinkingStarted && !thinkingEnded) {
+                    thinkingEnded = true;
+                    send({ type: "thinking_end", thinking: fullThinking, duration: 0 });
+                  }
+                  if (!thinkingStarted) thinkingEnded = true;
+                  send({ type: "content_chunk", content: chunk.content });
+                } else if (chunk.type === "tool_calls") {
+                  send({ type: "tool_use", tool_calls: chunk.tool_calls });
                 }
-                fullThinking += chunk.content;
-                send({ type: "thinking_chunk", content: chunk.content });
-              } else if (chunk.type === "content_chunk") {
-                if (thinkingStarted && !thinkingEnded) {
-                  thinkingEnded = true;
-                  send({ type: "thinking_end", thinking: fullThinking, duration: 0 });
-                }
-                if (!thinkingStarted) thinkingEnded = true;
-                send({ type: "content_chunk", content: chunk.content });
-              }
-            },
-            abortController.signal
-          );
+              },
+              abortController.signal
+            );
 
-          if (thinkingStarted && !thinkingEnded) {
-            send({ type: "thinking_end", thinking: fullThinking, duration: result.thinkingDuration ?? 0 });
+            fullContent += result.content;
+            if (result.stats) lastStats = result.stats;
+
+            if (thinkingStarted && !thinkingEnded) {
+              send({ type: "thinking_end", thinking: fullThinking, duration: result.thinkingDuration ?? 0 });
+            }
+
+            if (result.tool_calls?.length && tools?.length) {
+              send({ type: "tool_use", tool_calls: result.tool_calls });
+              const toolResults: ToolMsg[] = await Promise.all(
+                result.tool_calls.map(async (tc) => {
+                  const { text, error } = await callMcpTool(tc.function.name, tc.function.arguments ?? {});
+                  return { role: "tool" as const, tool_name: tc.function.name, content: error ?? text };
+                })
+              );
+              const assistantToolCalls: ToolCallForOllama[] = result.tool_calls.map((tc, i) => ({
+                type: "function" as const,
+                function: { index: i, name: tc.function.name, arguments: tc.function.arguments },
+              }));
+              messageHistory = [
+                ...messageHistory,
+                { role: "assistant", content: result.content, tool_calls: assistantToolCalls },
+                ...toolResults,
+              ];
+              loopCount++;
+              continue;
+            }
+
+            send({ type: "done", stats: lastStats });
+            break;
           }
-          send({ type: "done", stats: result.stats });
 
           try {
             await prisma.message.create({
@@ -182,9 +233,9 @@ export async function POST(request: NextRequest) {
                 id: assistantMessageId,
                 conversationId,
                 role: "assistant",
-                content: result.content,
-                thinking: result.thinking || null,
-                thinkingDuration: result.thinkingDuration ?? null,
+                content: fullContent,
+                thinking: fullThinking || null,
+                thinkingDuration: null,
               },
             });
           } catch (saveErr: unknown) {

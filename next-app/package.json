@@ -17,6 +17,7 @@
   "dependencies": {
     "@clerk/nextjs": "^6.37.3",
     "@microsoft/fetch-event-source": "^2.0.1",
+    "@modelcontextprotocol/sdk": "^1.26.0",
     "katex": "^0.16.28",
     "lucide-react": "^0.563.0",
     "markmap-lib": "^0.18.12",
@@ -30,7 +31,8 @@
     "rehype-katex": "^7.0.1",
     "remark-gfm": "^4.0.1",
     "remark-math": "^6.0.0",
-    "uuid": "^13.0.0"
+    "uuid": "^13.0.0",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@prisma/client": "^6.19.2",

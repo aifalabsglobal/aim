@@ -2,12 +2,17 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useChatContext } from "@/context/ChatContext";
-import { ChevronDown, Sparkles, Check, AlertCircle, Wifi, WifiOff } from "lucide-react";
+import { ChevronDown, Sparkles, Check, AlertCircle, Wifi, WifiOff, Wrench } from "lucide-react";
 
 type Model = { id?: string; name: string; displayName?: string; size?: number; offline?: boolean };
 
+const TOOL_CAPABLE_PATTERNS = [/^qwen3/i, /^qwen2\.5/i, /^llama3\.2/i, /^llama3\.1/i, /^mistral.*instruct/i, /^codellama/i];
+function isToolCapable(name: string) {
+  return TOOL_CAPABLE_PATTERNS.some((p) => p.test(name));
+}
+
 export default function ModelSwitcher({ sidebarMode = false }: { sidebarMode?: boolean }) {
-  const { currentModel, setCurrentModel, availableModels, gpuStatus, gpuStatusMessage } = useChatContext();
+  const { currentModel, setCurrentModel, availableModels, mcpInfo, gpuStatus, gpuStatusMessage } = useChatContext();
   const models = Array.isArray(availableModels) ? (availableModels as Model[]) : [];
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -85,10 +90,15 @@ export default function ModelSwitcher({ sidebarMode = false }: { sidebarMode?: b
                   className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors ${currentModel === model.name ? "bg-emerald-500/10 text-emerald-400" : "hover:bg-[var(--bg-hover)] text-[var(--text-primary)]"}`}
                 >
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <span className="text-sm font-medium truncate">{formatModelName(model)}</span>
                       {model.offline && (
                         <span className="px-1.5 py-0.5 text-[9px] font-medium bg-yellow-500/20 text-yellow-500 rounded">OFFLINE</span>
+                      )}
+                      {mcpInfo && mcpInfo.tools.length > 0 && isToolCapable(model.name) && (
+                        <span className="px-1.5 py-0.5 text-[9px] font-medium bg-emerald-500/20 text-emerald-400 rounded flex items-center gap-0.5" title="Supports MCP tools">
+                          <Wrench className="w-2.5 h-2.5" /> Tools
+                        </span>
                       )}
                     </div>
                     {model.size != null && (
@@ -107,10 +117,13 @@ export default function ModelSwitcher({ sidebarMode = false }: { sidebarMode?: b
             )}
           </div>
           {models.length > 0 && (
-            <div className="px-4 py-2 border-t border-[var(--border-color)]">
+            <div className="px-4 py-2 border-t border-[var(--border-color)] space-y-1">
               <p className="text-[10px] text-[var(--text-muted)] text-center">
                 {models.length} model{models.length !== 1 ? "s" : ""} available
               </p>
+              {mcpInfo && mcpInfo.tools.length > 0 && (
+                <p className="text-[10px] text-emerald-400/90 text-center">Use a tool-capable model (e.g. qwen3) for MCP</p>
+              )}
             </div>
           )}
         </div>
