@@ -217,15 +217,15 @@ export default function MessageItem({
             </div>
           )}
           {!isEditing && !isUser && (
-            <div className="flex items-center gap-1 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
-              <button type="button" onClick={handleCopy} className="p-1 text-[var(--text-muted)] hover:text-[var(--text-primary)] rounded">
+            <div className="flex items-center gap-1 mt-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+              <button type="button" onClick={handleCopy} className="p-1 text-[var(--text-muted)] hover:text-[var(--text-primary)] rounded" aria-label={copied ? "Copied" : "Copy"}>
                 {copied ? "Copied!" : <Copy className="w-3.5 h-3.5" />}
               </button>
             </div>
           )}
           {!isEditing && isUser && (
-            <div className="flex items-center gap-1 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
-              <button type="button" onClick={() => setIsEditing(true)} className="p-1 text-[var(--text-muted)] hover:text-[var(--text-primary)] rounded">
+            <div className="flex items-center gap-1 mt-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+              <button type="button" onClick={() => setIsEditing(true)} className="p-1 text-[var(--text-muted)] hover:text-[var(--text-primary)] rounded" aria-label="Edit">
                 <Edit2 className="w-3.5 h-3.5" />
               </button>
             </div>

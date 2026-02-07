@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { X, Moon, Sun, Trash2 } from "lucide-react";
 import { useTheme } from "@/context/ThemeContext";
 import { useChatContext } from "@/context/ChatContext";
@@ -8,14 +9,23 @@ export default function SettingsModal({ isOpen, onClose }: { isOpen: boolean; on
   const { theme, toggleTheme } = useTheme();
   const { settings = { temperature: 0.7, topP: 1, maxTokens: 4096, systemPrompt: "" }, updateSettings } = useChatContext();
 
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" onClick={onClose}>
+    <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" onClick={onClose} role="dialog" aria-modal="true" aria-labelledby="settings-title">
       <div className="bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-xl shadow-xl max-w-lg w-full max-h-[90vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between p-6 border-b border-[var(--border-color)]">
           <div>
-            <h2 className="text-xl font-bold">Settings</h2>
+            <h2 id="settings-title" className="text-xl font-bold">Settings</h2>
             <p className="text-sm text-[var(--text-muted)] mt-0.5">Customize your chat experience</p>
           </div>
           <button type="button" onClick={onClose} className="p-2 rounded-lg hover:bg-[var(--bg-hover)]" aria-label="Close">
@@ -26,12 +36,12 @@ export default function SettingsModal({ isOpen, onClose }: { isOpen: boolean; on
           <section>
             <h3 className="text-sm font-semibold uppercase tracking-wider text-[var(--text-muted)] mb-4">Appearance</h3>
             <div className="grid grid-cols-2 gap-3">
-              <button type="button" onClick={() => theme !== "light" && toggleTheme()} className={`flex items-center gap-3 p-4 rounded-xl border ${theme === "light" ? "border-blue-500 bg-blue-500/10" : "border-[var(--border-color)] hover:bg-[var(--bg-hover)]"}`}>
-                <Sun className={`w-5 h-5 ${theme === "light" ? "text-blue-500" : "text-[var(--text-muted)]"}`} />
+              <button type="button" onClick={() => theme !== "light" && toggleTheme()} className={`flex items-center gap-3 p-4 rounded-xl border ${theme === "light" ? "border-[var(--accent-primary)] bg-[var(--accent-primary)]/10" : "border-[var(--border-color)] hover:bg-[var(--bg-hover)]"}`}>
+                <Sun className={`w-5 h-5 ${theme === "light" ? "text-[var(--accent-primary)]" : "text-[var(--text-muted)]"}`} />
                 <div className="text-left"><p className="text-sm font-medium">Light</p></div>
               </button>
-              <button type="button" onClick={() => theme !== "dark" && toggleTheme()} className={`flex items-center gap-3 p-4 rounded-xl border ${theme === "dark" ? "border-blue-500 bg-blue-500/10" : "border-[var(--border-color)] hover:bg-[var(--bg-hover)]"}`}>
-                <Moon className={`w-5 h-5 ${theme === "dark" ? "text-blue-500" : "text-[var(--text-muted)]"}`} />
+              <button type="button" onClick={() => theme !== "dark" && toggleTheme()} className={`flex items-center gap-3 p-4 rounded-xl border ${theme === "dark" ? "border-[var(--accent-primary)] bg-[var(--accent-primary)]/10" : "border-[var(--border-color)] hover:bg-[var(--bg-hover)]"}`}>
+                <Moon className={`w-5 h-5 ${theme === "dark" ? "text-[var(--accent-primary)]" : "text-[var(--text-muted)]"}`} />
                 <div className="text-left"><p className="text-sm font-medium">Dark</p></div>
               </button>
             </div>

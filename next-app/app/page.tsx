@@ -41,6 +41,7 @@ export default function ChatPage() {
             <ChatContainer
               sidebarToggle={() => setIsSidebarOpen(true)}
               isSidebarOpen={isSidebarOpen}
+              onOpenSettings={() => setSettingsOpen(true)}
             />
           </div>
         </div>

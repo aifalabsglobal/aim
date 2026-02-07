@@ -7,7 +7,7 @@ import InputArea from "./InputArea";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import ThemeToggle from "@/components/Common/ThemeToggle";
-import { ArrowDown, Sparkles, Code2, Mail, Lightbulb, PanelLeftOpen, FileText } from "lucide-react";
+import { ArrowDown, Sparkles, Code2, Mail, Lightbulb, PanelLeftOpen, FileText, Settings } from "lucide-react";
 import { DEFAULT_SUGGESTIONS, type SuggestionItem } from "@/lib/suggestions";
 
 const SUGGESTION_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -25,10 +25,12 @@ export default function ChatContainer({
   sidebarToggle,
   isSidebarOpen = false,
   suggestions: suggestionsProp,
+  onOpenSettings,
 }: {
   sidebarToggle?: () => void;
   isSidebarOpen?: boolean;
   suggestions?: SuggestionItem[];
+  onOpenSettings?: () => void;
 } = {}) {
   const suggestions = suggestionsProp ?? DEFAULT_SUGGESTIONS;
   const {
@@ -136,21 +138,31 @@ export default function ChatContainer({
             )}
           </div>
           <div className="absolute right-4 flex items-center gap-2">
+            {onOpenSettings && (
+              <button
+                type="button"
+                onClick={onOpenSettings}
+                className="p-2 rounded-lg hover:bg-[var(--bg-hover)] text-[var(--text-secondary)] transition-colors"
+                aria-label="Open settings"
+              >
+                <Settings className="w-5 h-5" />
+              </button>
+            )}
             <ThemeToggle />
           </div>
         </header>
 
       {(error || streamError) && (
-        <div className="relative flex items-center justify-between gap-3 px-4 py-2.5 bg-rose-500/10 border-b border-rose-500/20 text-[var(--text-primary)] text-sm shrink-0">
+        <div role="alert" className="relative flex items-center justify-between gap-3 px-4 py-2.5 bg-rose-500/10 border-b border-rose-500/20 text-[var(--text-primary)] text-sm shrink-0">
           <span>{error || streamError}</span>
-          <button type="button" onClick={() => refreshConversations()} className="px-3 py-1.5 rounded-md bg-rose-500/20 hover:bg-rose-500/30 text-sm font-medium">
+          <button type="button" onClick={() => refreshConversations()} className="px-3 py-1.5 rounded-md bg-rose-500/20 hover:bg-rose-500/30 text-sm font-medium" aria-label="Retry">
             Retry
           </button>
         </div>
       )}
 
       {gpuStatus !== "connected" && gpuStatus !== "checking" && (
-        <div className="relative flex items-center gap-3 px-4 py-2.5 bg-amber-500/10 border-b border-amber-500/20 text-[var(--text-primary)] text-sm shrink-0">
+        <div role="status" className="relative flex items-center gap-3 px-4 py-2.5 bg-amber-500/10 border-b border-amber-500/20 text-[var(--text-primary)] text-sm shrink-0">
           <span className="font-medium">Ollama offline.</span>
           <span className="text-[var(--text-muted)] truncate flex-1 min-w-0">{gpuStatusMessage ?? "Cannot reach Ollama. Set OLLAMA_BASE_URL and ensure the server is reachable."}</span>
         </div>
@@ -267,7 +279,7 @@ export default function ChatContainer({
             />
             <div className="text-center mt-3">
               <p className="text-[11px] text-[var(--text-muted)]">
-                Worlds best inference model from AIM Research Labs
+                World's best inference model from AIM Research Labs
               </p>
             </div>
           </div>
