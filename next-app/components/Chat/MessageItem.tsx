@@ -115,21 +115,21 @@ export default function MessageItem({
       },
       ul({ children, className, ...props }: React.HTMLAttributes<HTMLUListElement>) {
         return (
-          <ul className="prose-aifa-list my-3 space-y-1 pl-6 list-disc text-[var(--text-primary)]" {...props}>
+          <ul className="prose-aifa-list my-3 space-y-1 pl-4 sm:pl-5 list-disc list-outside text-[var(--text-primary)] max-w-full" {...props}>
             {children}
           </ul>
         );
       },
       ol({ children, className, ...props }: React.OlHTMLAttributes<HTMLOListElement>) {
         return (
-          <ol className="prose-aifa-list my-3 space-y-1 pl-6 list-decimal text-[var(--text-primary)]" {...props}>
+          <ol className="prose-aifa-list my-3 space-y-1 pl-4 sm:pl-5 list-decimal list-outside text-[var(--text-primary)] max-w-full" {...props}>
             {children}
           </ol>
         );
       },
       li({ children, ...props }: React.LiHTMLAttributes<HTMLLIElement>) {
         return (
-          <li className="pl-1 marker:text-[var(--accent-primary)]" {...props}>
+          <li className="pl-1 pr-0 marker:text-[var(--accent-primary)] max-w-full break-words" {...props}>
             {children}
           </li>
         );
