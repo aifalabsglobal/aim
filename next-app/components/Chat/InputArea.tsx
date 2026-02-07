@@ -226,7 +226,7 @@ export default function InputArea({
         if (files.length) uploadFiles(files);
       }}
     >
-      <div className={`input-box flex items-end gap-0 rounded-2xl border bg-[var(--bg-secondary)]/60 shadow-sm transition-all duration-200 ${isDragOver ? "border-emerald-500 ring-2 ring-emerald-500/20" : "border-[var(--border-color)]"} focus-within:bg-[var(--bg-primary)] focus-within:shadow-md focus-within:border-[var(--border-hover)]`}>
+      <div className={`input-box flex items-end gap-0 rounded-[1.25rem] border bg-[var(--bg-primary)] shadow-[0_1px_3px_rgba(0,0,0,0.06)] transition-all duration-200 ${isDragOver ? "border-emerald-500 ring-2 ring-emerald-500/20" : "border-[var(--border-color)]"} focus-within:shadow-[0_2px_8px_rgba(0,0,0,0.08)] focus-within:border-[var(--border-hover)] dark:focus-within:shadow-[0_2px_8px_rgba(0,0,0,0.25)]`}>
         <div className="flex items-center shrink-0 pl-2 pb-2 pt-2">
           <input
             type="file"
@@ -297,7 +297,7 @@ export default function InputArea({
             onClick={isStreaming ? onStop : () => handleSubmit()}
             disabled={!isStreaming && !canSend}
             title={isStreaming ? "Stop generating" : "Send"}
-            className={`p-2 rounded-lg transition-all duration-200 ${isStreaming || canSend ? "bg-[var(--accent-primary)] text-white hover:bg-[var(--accent-secondary)]" : "bg-[var(--bg-hover)] text-[var(--text-muted)] cursor-not-allowed"}`}
+            className={`p-2.5 rounded-full transition-all duration-200 ${isStreaming || canSend ? "bg-[var(--accent-primary)] text-white hover:opacity-90" : "bg-[var(--bg-tertiary)] text-[var(--text-muted)] cursor-not-allowed"}`}
           >
             {isStreaming ? (
               <Square className="w-4 h-4 fill-current" />

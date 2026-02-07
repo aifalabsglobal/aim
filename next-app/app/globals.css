@@ -339,26 +339,33 @@
   hyphens: auto;
 }
 
+.prose-aifa ul,
+.prose-aifa ol {
+  list-style-position: outside;
+  margin-bottom: 0.75rem;
+  margin-left: 0;
+  margin-inline-start: 0;
+  padding-left: 1.25rem;
+}
+
 .prose-aifa ul {
   list-style-type: disc;
-  list-style-position: outside;
-  margin-left: 0;
-  margin-inline-start: 0.5rem;
-  margin-bottom: 1rem;
-  padding-left: 0;
 }
 
 .prose-aifa ol {
   list-style-type: decimal;
-  list-style-position: outside;
-  margin-left: 0;
-  margin-inline-start: 0.5rem;
-  margin-bottom: 1rem;
-  padding-left: 0;
+}
+
+/* Nested lists: one level of indent (e.g. ul under ol item) */
+.prose-aifa li > ul,
+.prose-aifa li > ol {
+  margin-top: 0.25rem;
+  margin-bottom: 0.5rem;
+  padding-left: 1rem;
 }
 
 .prose-aifa li {
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.35rem;
   padding-left: 0.25rem;
   padding-inline-start: 0.25rem;
 }

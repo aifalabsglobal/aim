@@ -9,7 +9,7 @@ import CodeBlock from "./CodeBlock";
 import MermaidBlock from "./MermaidBlock";
 import MarkmapBlock from "./MarkmapBlock";
 import ThinkingBlock from "./ThinkingBlock";
-import { Edit2, Copy, User, Bot, Loader2, File } from "lucide-react";
+import { Edit2, Copy, User, Sparkles, Loader2, File } from "lucide-react";
 import "katex/dist/katex.min.css";
 
 type Message = {
@@ -115,21 +115,21 @@ export default function MessageItem({
       },
       ul({ children, className, ...props }: React.HTMLAttributes<HTMLUListElement>) {
         return (
-          <ul className="prose-aifa-list my-3 space-y-1 pl-4 sm:pl-5 list-disc list-outside text-[var(--text-primary)] max-w-full" {...props}>
+          <ul className="prose-aifa-list my-2 space-y-0.5 list-disc list-outside text-[var(--text-primary)] max-w-full" {...props}>
             {children}
           </ul>
         );
       },
       ol({ children, className, ...props }: React.OlHTMLAttributes<HTMLOListElement>) {
         return (
-          <ol className="prose-aifa-list my-3 space-y-1 pl-4 sm:pl-5 list-decimal list-outside text-[var(--text-primary)] max-w-full" {...props}>
+          <ol className="prose-aifa-list my-2 space-y-0.5 list-decimal list-outside text-[var(--text-primary)] max-w-full" {...props}>
             {children}
           </ol>
         );
       },
       li({ children, ...props }: React.LiHTMLAttributes<HTMLLIElement>) {
         return (
-          <li className="pl-1 pr-0 marker:text-[var(--accent-primary)] max-w-full break-words" {...props}>
+          <li className="pl-0.5 marker:text-[var(--accent-primary)] max-w-full break-words" {...props}>
             {children}
           </li>
         );
@@ -139,28 +139,20 @@ export default function MessageItem({
   );
 
   return (
-    <div className={`message-container group py-5 ${isUser ? "message-user" : "message-ai"}`}>
-      <div className={`flex gap-3 sm:gap-4 w-full max-w-3xl mx-auto px-1 sm:px-2 md:px-0 min-w-0 ${isUser ? "flex-row-reverse" : ""}`}>
-        <div className="flex-shrink-0 mt-1">
+    <div className={`message-container group py-4 sm:py-5 ${isUser ? "message-user" : "message-ai"}`}>
+      <div className={`flex gap-3 w-full max-w-3xl mx-auto px-2 sm:px-3 md:px-0 min-w-0 ${isUser ? "flex-row-reverse" : ""}`}>
+        <div className="flex-shrink-0 mt-0.5">
           {isUser ? (
-            <div className="w-8 h-8 rounded-full bg-[var(--bg-tertiary)] flex items-center justify-center text-[var(--text-secondary)]">
-              <User className="w-4 h-4" />
+            <div className="w-7 h-7 rounded-full bg-[var(--bg-tertiary)] flex items-center justify-center text-[var(--text-secondary)]">
+              <User className="w-3.5 h-3.5" />
             </div>
           ) : (
-            <div className="w-8 h-8 rounded-lg bg-[var(--accent-primary)] flex items-center justify-center text-white shadow-sm">
-              <span className="font-serif font-bold text-xs">Ai</span>
+            <div className="w-7 h-7 rounded-full bg-[var(--bg-tertiary)] flex items-center justify-center text-[var(--accent-primary)]">
+              <Sparkles className="w-3.5 h-3.5" />
             </div>
           )}
         </div>
-        <div className={`flex-1 min-w-0 flex flex-col space-y-2 ${isUser ? "items-end" : ""}`}>
-          <div className="flex items-center gap-2">
-            <span className="font-semibold text-[13px] text-[var(--text-primary)]">
-              {isUser ? "You" : "AIFA"}
-            </span>
-            {message.isStreaming && !isUser && (
-              <Loader2 className="w-3 h-3 animate-spin text-[var(--text-muted)]" />
-            )}
-          </div>
+        <div className={`flex-1 min-w-0 flex flex-col ${isUser ? "items-end" : ""}`}>
           {isEditing ? (
             <div className="input-box p-3 w-full bg-[var(--bg-primary)]">
               <textarea
@@ -185,7 +177,10 @@ export default function MessageItem({
               </div>
             </div>
           ) : (
-            <div className={`w-full min-w-0 max-w-full ${isUser ? "bg-[var(--bg-user-message)] p-3 rounded-xl rounded-tr-sm max-w-[85%] sm:max-w-[90%]" : ""}`}>
+            <div className={`relative w-full min-w-0 max-w-full ${isUser ? "bg-[var(--bg-user-message)] px-4 py-3 rounded-2xl rounded-tr-md max-w-[85%] sm:max-w-[90%]" : "rounded-2xl bg-[var(--bg-secondary)]/40 dark:bg-[var(--bg-secondary)]/30 px-4 py-3"}`}>
+              {!isUser && message.isStreaming && !message.content && (
+                <Loader2 className="w-4 h-4 animate-spin text-[var(--text-muted)] mb-2" />
+              )}
               {message.thinking != null && !isUser && (
                 <ThinkingBlock
                   content={message.thinking}
@@ -217,15 +212,15 @@ export default function MessageItem({
             </div>
           )}
           {!isEditing && !isUser && (
-            <div className="flex items-center gap-1 mt-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
-              <button type="button" onClick={handleCopy} className="p-1 text-[var(--text-muted)] hover:text-[var(--text-primary)] rounded" aria-label={copied ? "Copied" : "Copy"}>
-                {copied ? "Copied!" : <Copy className="w-3.5 h-3.5" />}
+            <div className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-0.5">
+              <button type="button" onClick={handleCopy} className="p-1.5 rounded-md text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)]" aria-label={copied ? "Copied" : "Copy"}>
+                {copied ? <span className="text-xs font-medium">Copied</span> : <Copy className="w-3.5 h-3.5" />}
               </button>
             </div>
           )}
           {!isEditing && isUser && (
-            <div className="flex items-center gap-1 mt-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
-              <button type="button" onClick={() => setIsEditing(true)} className="p-1 text-[var(--text-muted)] hover:text-[var(--text-primary)] rounded" aria-label="Edit">
+            <div className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity sm:block hidden">
+              <button type="button" onClick={() => setIsEditing(true)} className="p-1.5 rounded-md text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)]" aria-label="Edit">
                 <Edit2 className="w-3.5 h-3.5" />
               </button>
             </div>
